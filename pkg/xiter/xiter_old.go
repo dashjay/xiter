@@ -4,12 +4,14 @@
 package xiter
 
 import (
+	"math/rand"
+	"strings"
+
+	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
 	"github.com/panjf2000/ants/v2"
-	"math/rand"
-	"strings"
 )
 
 var globalXiterPool *ants.Pool
@@ -25,6 +27,355 @@ type Seq[V any] func(yield func(V) bool)
 // Seq2 is a sequence of key/value pair provided by an iterator-like function.
 // Before Go1.23, golang has not stabled iter package, so we had to define this type
 type Seq2[K, V any] func(yield func(K, V) bool)
+
+// Concat returns an iterator over the concatenation of the sequences.
+func Concat[V any](seqs ...Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		for _, seq := range seqs {
+			seq(func(v V) bool {
+				return yield(v)
+			})
+		}
+	}
+}
+
+// Concat2 returns an iterator over the concatenation of the sequences.
+func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for _, seq := range seqs {
+			seq(func(k K, v V) bool {
+				return yield(k, v)
+			})
+		}
+	}
+}
+
+// Equal reports whether the two sequences are equal.
+func Equal[V comparable](x, y Seq[V]) bool {
+	Zip(x, y)(func(z Zipped[V, V]) bool {
+		if z.Ok1 != z.Ok2 || z.V1 != z.V2 {
+			return false
+		}
+		return true
+	})
+	return true
+}
+
+// Equal2 reports whether the two sequences are equal.
+func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
+	Zip2(x, y)(func(z Zipped2[K, V, K, V]) bool {
+		if z.Ok1 != z.Ok2 || z.K1 != z.K2 || z.V1 != z.V2 {
+			return false
+		}
+		return true
+	})
+
+	return true
+}
+
+// EqualFunc reports whether the two sequences are equal according to the function f.
+func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool {
+	Zip(x, y)(func(z Zipped[V1, V2]) bool {
+		if z.Ok1 != z.Ok2 || !f(z.V1, z.V2) {
+			return false
+		}
+		return true
+	})
+	return true
+}
+
+// EqualFunc2 reports whether the two sequences are equal according to the function f.
+func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V1, K2, V2) bool) bool {
+	Zip2(x, y)(func(z Zipped2[K1, V1, K2, V2]) bool {
+		if z.Ok1 != z.Ok2 || !f(z.K1, z.V1, z.K2, z.V2) {
+			return false
+		}
+		return true
+	})
+
+	return true
+}
+
+// Filter returns an iterator over seq that only includes
+// the values v for which f(v) is true.
+func Filter[V any](f func(V) bool, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		seq(func(v V) bool {
+			if f(v) && !yield(v) {
+				return false
+			}
+			return true
+		})
+	}
+}
+
+// Filter2 returns an iterator over seq that only includes
+// the pairs k, v for which f(k, v) is true.
+func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		seq(func(k K, v V) bool {
+			if f(k, v) && !yield(k, v) {
+				return false
+			}
+			return true
+		})
+	}
+}
+
+// Limit returns an iterator over seq that stops after n values.
+func Limit[V any](seq Seq[V], n int) Seq[V] {
+	return func(yield func(V) bool) {
+		if n <= 0 {
+			return
+		}
+		seq(func(v V) bool {
+			if !yield(v) {
+				return false
+			}
+			if n--; n <= 0 {
+				return false
+			}
+			return true
+		})
+	}
+}
+
+// Limit2 returns an iterator over seq that stops after n key-value pairs.
+func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		if n <= 0 {
+			return
+		}
+		seq(func(k K, v V) bool {
+			if !yield(k, v) {
+				return false
+			}
+			if n--; n <= 0 {
+				return false
+			}
+			return true
+		})
+	}
+}
+
+// Map returns an iterator over f applied to seq.
+func Map[In, Out any](f func(In) Out, seq Seq[In]) Seq[Out] {
+	return func(yield func(Out) bool) {
+		seq(func(in In) bool {
+			return yield(f(in))
+		})
+	}
+}
+
+// Map2 returns an iterator over f applied to seq.
+func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn, VIn]) Seq2[KOut, VOut] {
+	return func(yield func(KOut, VOut) bool) {
+		seq(func(k KIn, v VIn) bool {
+			return yield(f(k, v))
+		})
+	}
+}
+
+// Merge merges two sequences of ordered values.
+// Values appear in the output once for each time they appear in x
+// and once for each time they appear in y.
+// If the two input sequences are not ordered,
+// the output sequence will not be ordered,
+// but it will still contain every value from x and y exactly once.
+//
+// Merge is equivalent to calling MergeFunc with cmp.Compare[V]
+// as the ordering function.
+func Merge[V cmp.Ordered](x, y Seq[V]) Seq[V] {
+	return MergeFunc(x, y, cmp.Compare[V])
+}
+
+// MergeFunc merges two sequences of values ordered by the function f.
+// Values appear in the output once for each time they appear in x
+// and once for each time they appear in y.
+// When equal values appear in both sequences,
+// the output contains the values from x before the values from y.
+// If the two input sequences are not ordered by f,
+// the output sequence will not be ordered by f,
+// but it will still contain every value from x and y exactly once.
+func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V] {
+	return func(yield func(V) bool) {
+		next, stop := Pull(y)
+		defer stop()
+		v2, ok2 := next()
+		x(func(v1 V) bool {
+			for ok2 && f(v1, v2) > 0 {
+				if !yield(v2) {
+					return false
+				}
+				v2, ok2 = next()
+			}
+			if !yield(v1) {
+				return false
+			}
+			return true
+		})
+		for ok2 {
+			if !yield(v2) {
+				return
+			}
+			v2, ok2 = next()
+		}
+	}
+}
+
+// Merge2 merges two sequences of key-value pairs ordered by their keys.
+// Pairs appear in the output once for each time they appear in x
+// and once for each time they appear in y.
+// If the two input sequences are not ordered by their keys,
+// the output sequence will not be ordered by its keys,
+// but it will still contain every pair from x and y exactly once.
+//
+// Merge2 is equivalent to calling MergeFunc2 with cmp.Compare[K]
+// as the ordering function.
+func Merge2[K cmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V] {
+	return MergeFunc2(x, y, cmp.Compare[K])
+}
+
+// MergeFunc2 merges two sequences of key-value pairs ordered by the function f.
+// Pairs appear in the output once for each time they appear in x
+// and once for each time they appear in y.
+// When pairs with equal keys appear in both sequences,
+// the output contains the pairs from x before the pairs from y.
+// If the two input sequences are not ordered by f,
+// the output sequence will not be ordered by f,
+// but it will still contain every pair from x and y exactly once.
+func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		next, stop := Pull2(y)
+		defer stop()
+		k2, v2, ok2 := next()
+		x(func(k1 K, v1 V) bool {
+			for ok2 && f(k1, k2) > 0 {
+				if !yield(k2, v2) {
+					return false
+				}
+				k2, v2, ok2 = next()
+			}
+			if !yield(k1, v1) {
+				return false
+			}
+			return true
+		})
+		for ok2 {
+			if !yield(k2, v2) {
+				return
+			}
+			k2, v2, ok2 = next()
+		}
+	}
+}
+
+// Reduce combines the values in seq using f.
+// For each value v in seq, it updates sum = f(sum, v)
+// and then returns the final sum.
+// For example, if iterating over seq yields v1, v2, v3,
+// Reduce returns f(f(f(sum, v1), v2), v3).
+func Reduce[Sum, V any](f func(Sum, V) Sum, sum Sum, seq Seq[V]) Sum {
+	seq(func(v V) bool {
+		sum = f(sum, v)
+		return true
+	})
+	return sum
+}
+
+// Reduce2 combines the values in seq using f.
+// For each pair k, v in seq, it updates sum = f(sum, k, v)
+// and then returns the final sum.
+// For example, if iterating over seq yields (k1, v1), (k2, v2), (k3, v3)
+// Reduce returns f(f(f(sum, k1, v1), k2, v2), k3, v3).
+func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum {
+	seq(func(k K, v V) bool {
+		sum = f(sum, k, v)
+		return true
+	})
+	return sum
+}
+
+// Zip returns an iterator that iterates x and y in parallel,
+// yielding Zipped values of successive elements of x and y.
+// If one sequence ends before the other, the iteration continues
+// with Zipped values in which either Ok1 or Ok2 is false,
+// depending on which sequence ended first.
+//
+// Zip is a useful building block for adapters that process
+// pairs of sequences. For example, Equal can be defined as:
+//
+//	func Equal[V comparable](x, y Seq[V]) bool {
+//		for z := range Zip(x, y) {
+//			if z.Ok1 != z.Ok2 || z.V1 != z.V2 {
+//				return false
+//			}
+//		}
+//		return true
+//	}
+func Zip[V1, V2 any](x Seq[V1], y Seq[V2]) Seq[Zipped[V1, V2]] {
+	return func(yield func(z Zipped[V1, V2]) bool) {
+		next, stop := Pull(y)
+		defer stop()
+		v2, ok2 := next()
+		x(func(v1 V1) bool {
+			if !yield(Zipped[V1, V2]{v1, true, v2, ok2}) {
+				return false
+			}
+			v2, ok2 = next()
+			return true
+		})
+
+		var zv1 V1
+		for ok2 {
+			if !yield(Zipped[V1, V2]{zv1, false, v2, ok2}) {
+				return
+			}
+			v2, ok2 = next()
+		}
+	}
+}
+
+// Zip2 returns an iterator that iterates x and y in parallel,
+// yielding Zipped2 values of successive elements of x and y.
+// If one sequence ends before the other, the iteration continues
+// with Zipped2 values in which either Ok1 or Ok2 is false,
+// depending on which sequence ended first.
+//
+// Zip2 is a useful building block for adapters that process
+// pairs of sequences. For example, Equal2 can be defined as:
+//
+//	func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
+//		for z := range Zip2(x, y) {
+//			if z.Ok1 != z.Ok2 || z.K1 != z.K2 || z.V1 != z.V2 {
+//				return false
+//			}
+//		}
+//		return true
+//	}
+func Zip2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2]) Seq[Zipped2[K1, V1, K2, V2]] {
+	return func(yield func(z Zipped2[K1, V1, K2, V2]) bool) {
+		next, stop := Pull2(y)
+		defer stop()
+		k2, v2, ok2 := next()
+		x(func(k1 K1, v1 V1) bool {
+			if !yield(Zipped2[K1, V1, K2, V2]{k1, v1, true, k2, v2, ok2}) {
+				return false
+			}
+			k2, v2, ok2 = next()
+			return true
+		})
+
+		var zk1 K1
+		var zv1 V1
+		for ok2 {
+			if !yield(Zipped2[K1, V1, K2, V2]{zk1, zv1, false, k2, v2, ok2}) {
+				return
+			}
+			k2, v2, ok2 = next()
+		}
+	}
+}
 
 // ToSlice return a slice containing all elements from seq.
 func ToSlice[T any](seq Seq[T]) (out []T) {
