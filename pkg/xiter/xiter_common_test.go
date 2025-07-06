@@ -19,14 +19,33 @@ func TestXIterCommon(t *testing.T) {
 	})
 
 	t.Run("from slice reverse", func(t *testing.T) {
-		res := xiter.ToSlice(xiter.FromSliceReverse(_range(0, 1000)))
+		reversedSeq := xiter.FromSliceReverse(_range(0, 1000))
+		res := xiter.ToSlice(reversedSeq)
 		for i := 0; i < 1000; i++ {
 			assert.Equal(t, 1000-i-1, res[i])
 		}
+
+		res = xiter.ToSlice(xiter.Limit(reversedSeq, 1))
+		assert.Len(t, res, 1)
+		assert.Equal(t, res[0], 999)
 	})
 
 	t.Run("reverse", func(t *testing.T) {
-		res := xiter.ToSlice(xiter.Reverse(xiter.FromSlice(_range(0, 1000))))
+		reversedSeq := xiter.Reverse(xiter.FromSlice(_range(0, 1000)))
+		res := xiter.ToSlice(reversedSeq)
+		for i := 0; i < 1000; i++ {
+			assert.Equal(t, 1000-i-1, res[i])
+		}
+		res = xiter.ToSlice(xiter.Limit(reversedSeq, 1))
+		assert.Len(t, res, 1)
+		assert.Equal(t, res[0], 999)
+
+		source := _range(0, 1000)
+		reversedSeq = xiter.Reverse(xiter.FromSlice(source)) // r
+		for i := 0; i < 10; i++ {
+			reversedSeq = xiter.Reverse(reversedSeq)
+		}
+		res = xiter.ToSlice(reversedSeq)
 		for i := 0; i < 1000; i++ {
 			assert.Equal(t, 1000-i-1, res[i])
 		}
