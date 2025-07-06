@@ -6,6 +6,7 @@ package xiter
 import (
 	"iter"
 	"maps"
+	"math/rand/v2"
 	"strings"
 
 	"github.com/dashjay/xiter/pkg/cmp"
