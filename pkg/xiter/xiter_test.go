@@ -748,3 +748,95 @@ func TestXIter61898(t *testing.T) {
 		})
 	})
 }
+
+func ExampleConcat() {
+	seq1 := xiter.FromSlice([]int{1, 2})
+	seq2 := xiter.FromSlice([]int{3, 4})
+	seq3 := xiter.FromSlice([]int{5, 6})
+	combined := xiter.Concat(seq1, seq2, seq3)
+	fmt.Println(xiter.ToSlice(combined))
+	// output:
+	// [1 2 3 4 5 6]
+}
+
+func ExampleEqual() {
+	seq1 := xiter.FromSlice([]int{1, 2, 3})
+	seq2 := xiter.FromSlice([]int{1, 2, 3})
+	seq3 := xiter.FromSlice([]int{1, 2, 4})
+	fmt.Println(xiter.Equal(seq1, seq2))
+	fmt.Println(xiter.Equal(seq1, seq3))
+	// output:
+	// true
+	// false
+}
+
+func ExampleEqualFunc() {
+	seq1 := xiter.FromSlice([]int{6, 11, 16})
+	seq2 := xiter.FromSlice([]int{26, 36, 41})
+	seq3 := xiter.FromSlice([]int{1, 2, 4})
+	mod5Eq := func(a int, b int) bool {
+		return math.Mod(float64(a), 5) == math.Mod(float64(b), 5)
+	}
+	fmt.Println(xiter.EqualFunc(seq1, seq2, mod5Eq))
+	fmt.Println(xiter.EqualFunc(seq1, seq3, mod5Eq))
+	// output:
+	// true
+	// false
+}
+
+func ExampleFilter() {
+	seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+	evenNumbers := xiter.Filter(func(v int) bool { return v%2 == 0 }, seq)
+	fmt.Println(xiter.ToSlice(evenNumbers))
+	// output:
+	// [2 4]
+}
+
+func ExampleLimit() {
+	seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+	limitedSeq := xiter.Limit(seq, 3)
+	fmt.Println(xiter.ToSlice(limitedSeq))
+	// output:
+	// [1 2 3]
+}
+
+func ExampleMap() {
+	seq := xiter.FromSlice([]int{1, 2, 3})
+	doubled := xiter.Map(func(v int) int { return v * 2 }, seq)
+	fmt.Println(xiter.ToSlice(doubled))
+	// output:
+	// [2 4 6]
+}
+
+func ExampleMerge() {
+	oddSeq := xiter.FromSlice([]int{1, 3, 5})
+	evenSeq := xiter.FromSlice([]int{2, 4, 6})
+	mergedSeq := xiter.Merge(oddSeq, evenSeq)
+	fmt.Println(xiter.ToSlice(mergedSeq))
+	// output:
+	// [1 2 3 4 5 6]
+}
+
+func ExampleReduce() {
+	seq1To100 := xiter.FromSlice(_range(1, 101))
+	sum := xiter.Reduce(func(sum int, v int) int {
+		return sum + v
+	}, 0, seq1To100)
+	fmt.Println(sum)
+	// output:
+	// 5050
+}
+
+func ExampleZip() {
+	seq1 := xiter.FromSlice([]int{1, 2, 3})
+	seq2 := xiter.FromSlice([]int{11, 22, 33})
+	zipped := xiter.Zip(seq1, seq2)
+	out := xiter.ToSlice(zipped)
+	for _, o := range out {
+		fmt.Println(o.V1, o.V2)
+	}
+	// output:
+	// 1 11
+	// 2 22
+	// 3 33
+}

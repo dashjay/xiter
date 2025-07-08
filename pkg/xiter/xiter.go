@@ -15,14 +15,26 @@ import (
 )
 
 // Seq is a sequence of elements provided by an iterator-like function.
-// We made an Alias Seq to iter.Seq for providing a compatible interface in lower go versions.
+// We made this alias Seq to iter.Seq for providing a compatible interface in lower go versions.
 type Seq[V any] iter.Seq[V]
 
 // Seq2 is a sequence of key/value pair provided by an iterator-like function.
-// We made an Alias Seq2 to iter.Seq2 for providing a compatible interface in lower go versions.
+// We made this alias Seq2 to iter.Seq2 for providing a compatible interface in lower go versions.
 type Seq2[K, V any] iter.Seq2[K, V]
 
-// Concat returns an iterator over the concatenation of the sequences.
+// Concat returns a Seq over the concatenation of the sequences.
+// It combines multiple Seqs into a single Seq by iterating each Seq one by one
+// in order.
+//
+// Example:
+//
+//	seq1 := xiter.FromSlice([]int{1, 2})
+//	seq2 := xiter.FromSlice([]int{3, 4})
+//	seq3 := xiter.FromSlice([]int{5, 6})
+//	combined := xiter.Concat(seq1, seq2, seq3)
+//	fmt.Println(xiter.ToSlice(combined))
+//	// output:
+//	// [1 2 3 4 5 6]
 func Concat[V any](seqs ...Seq[V]) Seq[V] {
 	return func(yield func(V) bool) {
 		for _, seq := range seqs {
@@ -35,7 +47,8 @@ func Concat[V any](seqs ...Seq[V]) Seq[V] {
 	}
 }
 
-// Concat2 returns an iterator over the concatenation of the sequences.
+// Concat2 returns an Seq2 over the concatenation of the given Seq2s.
+// Like Concat but run with Seq2
 func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for _, seq := range seqs {
@@ -48,7 +61,20 @@ func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V] {
 	}
 }
 
-// Equal reports whether the two sequences are equal.
+// Equal returns whether the two sequences are equal.
+// It compares elements from both Seq in parallel. If the Seq have different lengths
+// or if any corresponding elements are not equal, it returns false.
+//
+// Example:
+//
+//	seq1 := xiter.FromSlice([]int{1, 2, 3})
+//	seq2 := xiter.FromSlice([]int{1, 2, 3})
+//	seq3 := xiter.FromSlice([]int{1, 2, 4})
+//	fmt.Println(xiter.Equal(seq1, seq2))
+//	fmt.Println(xiter.Equal(seq1, seq3))
+//	// output:
+//	// true
+//	// false
 func Equal[V comparable](x, y Seq[V]) bool {
 	for z := range Zip(x, y) {
 		if z.Ok1 != z.Ok2 || z.V1 != z.V2 {
@@ -58,7 +84,8 @@ func Equal[V comparable](x, y Seq[V]) bool {
 	return true
 }
 
-// Equal2 reports whether the two sequences are equal.
+// Equal2 returns whether the two Seq2 are equal.
+// Like Equal but run with Seq2
 func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
 	for z := range Zip2(x, y) {
 		if z.Ok1 != z.Ok2 || z.K1 != z.K2 || z.V1 != z.V2 {
@@ -68,7 +95,20 @@ func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
 	return true
 }
 
-// EqualFunc reports whether the two sequences are equal according to the function f.
+// EqualFunc returns whether the two sequences are equal according to the function f.
+// Example:
+//
+//	seq1 := xiter.FromSlice([]int{6, 11, 16})
+//	seq2 := xiter.FromSlice([]int{26, 36, 41})
+//	seq3 := xiter.FromSlice([]int{1, 2, 4})
+//	mod5Eq := func(a int, b int) bool {
+//		return math.Mod(float64(a), 5) == math.Mod(float64(b), 5)
+//	}
+//	fmt.Println(xiter.EqualFunc(seq1, seq2, mod5Eq))
+//	fmt.Println(xiter.EqualFunc(seq1, seq3, mod5Eq))
+//	// output:
+//	// true
+//	// false
 func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool {
 	for z := range Zip(x, y) {
 		if z.Ok1 != z.Ok2 || !f(z.V1, z.V2) {
@@ -78,7 +118,8 @@ func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool {
 	return true
 }
 
-// EqualFunc2 reports whether the two sequences are equal according to the function f.
+// EqualFunc2 returns whether the two sequences are equal according to the function f.
+// Like EqualFunc but run with Seq2
 func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V1, K2, V2) bool) bool {
 	for z := range Zip2(x, y) {
 		if z.Ok1 != z.Ok2 || !f(z.K1, z.V1, z.K2, z.V2) {
@@ -88,8 +129,14 @@ func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V
 	return true
 }
 
-// Filter returns an iterator over seq that only includes
+// Filter returns a Seq over seq that only includes
 // the values v for which f(v) is true.
+//
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3, 4, 5})
+//	evenNumbers := Filter(func(v int) bool { return v%2 == 0 }, seq)
+//	// evenNumbers will yield: 2, 4
 func Filter[V any](f func(V) bool, seq Seq[V]) Seq[V] {
 	return func(yield func(V) bool) {
 		for v := range seq {
@@ -100,8 +147,9 @@ func Filter[V any](f func(V) bool, seq Seq[V]) Seq[V] {
 	}
 }
 
-// Filter2 returns an iterator over seq that only includes
-// the pairs k, v for which f(k, v) is true.
+// Filter2 returns an Seq over seq that only includes
+// the key-value pairs k, v for which f(k, v) is true.
+// Like Filter but run with Seq2
 func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for k, v := range seq {
@@ -112,7 +160,16 @@ func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V] {
 	}
 }
 
-// Limit returns an iterator over seq that stops after n values.
+// Limit returns an iterator over the first n values of seq.
+// If n is less than or equal to 0, an empty sequence is returned.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+//	limitedSeq := xiter.Limit(seq, 3)
+//	fmt.Println(xiter.ToSlice(limitedSeq))
+//	// output:
+//	// [1 2 3]
 func Limit[V any](seq Seq[V], n int) Seq[V] {
 	return func(yield func(V) bool) {
 		if n <= 0 {
@@ -130,7 +187,8 @@ func Limit[V any](seq Seq[V], n int) Seq[V] {
 	}
 }
 
-// Limit2 returns an iterator over seq that stops after n key-value pairs.
+// Limit2 returns a Seq over Seq2 that stops after n key-value pairs.
+// Like Limit but run with Seq2
 func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		if n <= 0 {
@@ -148,7 +206,15 @@ func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
 	}
 }
 
-// Map returns an iterator over f applied to seq.
+// Map returns a Seq over the results of applying f to each value in seq.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3})
+//	doubled := xiter.Map(func(v int) int { return v * 2 }, seq)
+//	fmt.Println(xiter.ToSlice(doubled))
+//	// output:
+//	// [2 4 6]
 func Map[In, Out any](f func(In) Out, seq Seq[In]) Seq[Out] {
 	return func(yield func(Out) bool) {
 		for in := range seq {
@@ -159,8 +225,11 @@ func Map[In, Out any](f func(In) Out, seq Seq[In]) Seq[Out] {
 	}
 }
 
-// Map2 returns an iterator over f applied to seq.
-func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn, VIn]) Seq2[KOut, VOut] {
+// Map2 returns a Seq2 over the results of applying f to each key-value pair in seq.
+// Like Map but run with Seq2
+func Map2[KIn, VIn, KOut, VOut any](
+	f func(KIn, VIn) (KOut, VOut),
+	seq Seq2[KIn, VIn]) Seq2[KOut, VOut] {
 	return func(yield func(KOut, VOut) bool) {
 		for k, v := range seq {
 			if !yield(f(k, v)) {
@@ -267,6 +336,15 @@ func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V] {
 // and then returns the final sum.
 // For example, if iterating over seq yields v1, v2, v3,
 // Reduce returns f(f(f(sum, v1), v2), v3).
+// Example:
+//
+//	seq1To100 := xiter.FromSlice(_range(1, 101))
+//	sum := xiter.Reduce(func(sum int, v int) int {
+//		return sum + v
+//	}, 0, seq1To100)
+//	fmt.Println(sum)
+//	// output:
+//	// 5050
 func Reduce[Sum, V any](f func(Sum, V) Sum, sum Sum, seq Seq[V]) Sum {
 	for v := range seq {
 		sum = f(sum, v)
@@ -371,6 +449,13 @@ func ToSlice[T any](seq Seq[T]) (out []T) {
 	return out
 }
 
+// ToSliceSeq2Key returns the keys in seq as a slice.
+//
+// Example:
+//
+//	seq := FromMap(map[string]int{"a": 1, "b": 2})
+//	keys := ToSliceSeq2Key(seq)
+//	// keys will contain: []string{"a", "b"} (order may vary)
 func ToSliceSeq2Key[K, V any](seq Seq2[K, V]) (out []K) {
 	for k := range seq {
 		out = append(out, k)
@@ -378,6 +463,13 @@ func ToSliceSeq2Key[K, V any](seq Seq2[K, V]) (out []K) {
 	return
 }
 
+// ToSliceSeq2Value returns the values in seq as a slice.
+//
+// Example:
+//
+//	seq := FromMap(map[string]int{"a": 1, "b": 2})
+//	values := ToSliceSeq2Value(seq)
+//	// values will contain: []int{1, 2} (order may vary)
 func ToSliceSeq2Value[K, V any](seq Seq2[K, V]) (out []V) {
 	for _, v := range seq {
 		out = append(out, v)
@@ -704,6 +796,12 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 }
 
 // Replace return a seq that replace from -> to
+//
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3, 2, 4})
+//	replacedSeq := Replace(seq, 2, 99, -1) // Replace all 2s with 99
+//	// replacedSeq will yield: 1, 99, 3, 99, 4
 func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
@@ -722,11 +820,23 @@ func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 }
 
 // ReplaceAll return a seq that replace all from -> to
+//
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3, 2, 4})
+//	replacedSeq := ReplaceAll(seq, 2, 99)
+//	// replacedSeq will yield: 1, 99, 3, 99, 4
 func ReplaceAll[T comparable](seq Seq[T], from, to T) Seq[T] {
 	return Replace(seq, from, to, -1)
 }
 
 // FromSliceShuffle return a seq that shuffle the elements in the input slice.
+//
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3, 4, 5})
+//	shuffledSeq := FromSliceShuffle(ToSlice(seq))
+//	// shuffledSeq will yield a shuffled sequence of 1, 2, 3, 4, 5
 func FromSliceShuffle[T any](in []T) Seq[T] {
 	randPerm := rand.Perm(len(in))
 	return func(yield func(T) bool) {

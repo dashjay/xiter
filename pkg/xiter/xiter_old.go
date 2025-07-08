@@ -14,21 +14,16 @@ import (
 	"github.com/panjf2000/ants/v2"
 )
 
-var globalXiterPool *ants.Pool
+var globalXIterPool *ants.Pool
 
 func init() {
-	globalXiterPool, _ = ants.NewPool(1_000_000)
+	globalXIterPool, _ = ants.NewPool(1_000_000)
 }
 
-// Seq is a sequence of elements provided by an iterator-like function.
-// Before Go1.23, golang has not stabled iter package, so we had to define this type
 type Seq[V any] func(yield func(V) bool)
 
-// Seq2 is a sequence of key/value pair provided by an iterator-like function.
-// Before Go1.23, golang has not stabled iter package, so we had to define this type
 type Seq2[K, V any] func(yield func(K, V) bool)
 
-// Concat returns an iterator over the concatenation of the sequences.
 func Concat[V any](seqs ...Seq[V]) Seq[V] {
 	return func(yield func(V) bool) {
 		contine := false
@@ -44,7 +39,6 @@ func Concat[V any](seqs ...Seq[V]) Seq[V] {
 	}
 }
 
-// Concat2 returns an iterator over the concatenation of the sequences.
 func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V] {
 	contine := false
 	return func(yield func(K, V) bool) {
@@ -60,7 +54,6 @@ func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V] {
 	}
 }
 
-// Equal reports whether the two sequences are equal.
 func Equal[V comparable](x, y Seq[V]) bool {
 	eq := true
 	Zip(x, y)(func(z Zipped[V, V]) bool {
@@ -73,7 +66,6 @@ func Equal[V comparable](x, y Seq[V]) bool {
 	return eq
 }
 
-// Equal2 reports whether the two sequences are equal.
 func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
 	eq := true
 	Zip2(x, y)(func(z Zipped2[K, V, K, V]) bool {
@@ -87,7 +79,6 @@ func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
 	return eq
 }
 
-// EqualFunc reports whether the two sequences are equal according to the function f.
 func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool {
 	eq := true
 	Zip(x, y)(func(z Zipped[V1, V2]) bool {
@@ -100,7 +91,6 @@ func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool {
 	return eq
 }
 
-// EqualFunc2 reports whether the two sequences are equal according to the function f.
 func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V1, K2, V2) bool) bool {
 	eq := true
 	Zip2(x, y)(func(z Zipped2[K1, V1, K2, V2]) bool {
@@ -113,8 +103,6 @@ func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V
 	return eq
 }
 
-// Filter returns an iterator over seq that only includes
-// the values v for which f(v) is true.
 func Filter[V any](f func(V) bool, seq Seq[V]) Seq[V] {
 	return func(yield func(V) bool) {
 		seq(func(v V) bool {
@@ -126,8 +114,6 @@ func Filter[V any](f func(V) bool, seq Seq[V]) Seq[V] {
 	}
 }
 
-// Filter2 returns an iterator over seq that only includes
-// the pairs k, v for which f(k, v) is true.
 func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		seq(func(k K, v V) bool {
@@ -139,7 +125,6 @@ func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V] {
 	}
 }
 
-// Limit returns an iterator over seq that stops after n values.
 func Limit[V any](seq Seq[V], n int) Seq[V] {
 	return func(yield func(V) bool) {
 		if n <= 0 {
@@ -160,7 +145,6 @@ func Limit[V any](seq Seq[V], n int) Seq[V] {
 	}
 }
 
-// Limit2 returns an iterator over seq that stops after n key-value pairs.
 func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		if n <= 0 {
@@ -181,7 +165,6 @@ func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
 	}
 }
 
-// Map returns an iterator over f applied to seq.
 func Map[In, Out any](f func(In) Out, seq Seq[In]) Seq[Out] {
 	return func(yield func(Out) bool) {
 		seq(func(in In) bool {
@@ -190,7 +173,6 @@ func Map[In, Out any](f func(In) Out, seq Seq[In]) Seq[Out] {
 	}
 }
 
-// Map2 returns an iterator over f applied to seq.
 func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn, VIn]) Seq2[KOut, VOut] {
 	return func(yield func(KOut, VOut) bool) {
 		seq(func(k KIn, v VIn) bool {
@@ -199,27 +181,10 @@ func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn,
 	}
 }
 
-// Merge merges two sequences of ordered values.
-// Values appear in the output once for each time they appear in x
-// and once for each time they appear in y.
-// If the two input sequences are not ordered,
-// the output sequence will not be ordered,
-// but it will still contain every value from x and y exactly once.
-//
-// Merge is equivalent to calling MergeFunc with cmp.Compare[V]
-// as the ordering function.
 func Merge[V cmp.Ordered](x, y Seq[V]) Seq[V] {
 	return MergeFunc(x, y, cmp.Compare[V])
 }
 
-// MergeFunc merges two sequences of values ordered by the function f.
-// Values appear in the output once for each time they appear in x
-// and once for each time they appear in y.
-// When equal values appear in both sequences,
-// the output contains the values from x before the values from y.
-// If the two input sequences are not ordered by f,
-// the output sequence will not be ordered by f,
-// but it will still contain every value from x and y exactly once.
 func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V] {
 	return func(yield func(V) bool) {
 		next, stop := Pull(y)
@@ -246,27 +211,10 @@ func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V] {
 	}
 }
 
-// Merge2 merges two sequences of key-value pairs ordered by their keys.
-// Pairs appear in the output once for each time they appear in x
-// and once for each time they appear in y.
-// If the two input sequences are not ordered by their keys,
-// the output sequence will not be ordered by its keys,
-// but it will still contain every pair from x and y exactly once.
-//
-// Merge2 is equivalent to calling MergeFunc2 with cmp.Compare[K]
-// as the ordering function.
 func Merge2[K cmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V] {
 	return MergeFunc2(x, y, cmp.Compare[K])
 }
 
-// MergeFunc2 merges two sequences of key-value pairs ordered by the function f.
-// Pairs appear in the output once for each time they appear in x
-// and once for each time they appear in y.
-// When pairs with equal keys appear in both sequences,
-// the output contains the pairs from x before the pairs from y.
-// If the two input sequences are not ordered by f,
-// the output sequence will not be ordered by f,
-// but it will still contain every pair from x and y exactly once.
 func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		next, stop := Pull2(y)
@@ -293,11 +241,6 @@ func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V] {
 	}
 }
 
-// Reduce combines the values in seq using f.
-// For each value v in seq, it updates sum = f(sum, v)
-// and then returns the final sum.
-// For example, if iterating over seq yields v1, v2, v3,
-// Reduce returns f(f(f(sum, v1), v2), v3).
 func Reduce[Sum, V any](f func(Sum, V) Sum, sum Sum, seq Seq[V]) Sum {
 	seq(func(v V) bool {
 		sum = f(sum, v)
@@ -306,11 +249,6 @@ func Reduce[Sum, V any](f func(Sum, V) Sum, sum Sum, seq Seq[V]) Sum {
 	return sum
 }
 
-// Reduce2 combines the values in seq using f.
-// For each pair k, v in seq, it updates sum = f(sum, k, v)
-// and then returns the final sum.
-// For example, if iterating over seq yields (k1, v1), (k2, v2), (k3, v3)
-// Reduce returns f(f(f(sum, k1, v1), k2, v2), k3, v3).
 func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum {
 	seq(func(k K, v V) bool {
 		sum = f(sum, k, v)
@@ -319,23 +257,6 @@ func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum 
 	return sum
 }
 
-// Zip returns an iterator that iterates x and y in parallel,
-// yielding Zipped values of successive elements of x and y.
-// If one sequence ends before the other, the iteration continues
-// with Zipped values in which either Ok1 or Ok2 is false,
-// depending on which sequence ended first.
-//
-// Zip is a useful building block for adapters that process
-// pairs of sequences. For example, Equal can be defined as:
-//
-//	func Equal[V comparable](x, y Seq[V]) bool {
-//		for z := range Zip(x, y) {
-//			if z.Ok1 != z.Ok2 || z.V1 != z.V2 {
-//				return false
-//			}
-//		}
-//		return true
-//	}
 func Zip[V1, V2 any](x Seq[V1], y Seq[V2]) Seq[Zipped[V1, V2]] {
 	return func(yield func(z Zipped[V1, V2]) bool) {
 		next, stop := Pull(y)
@@ -359,23 +280,6 @@ func Zip[V1, V2 any](x Seq[V1], y Seq[V2]) Seq[Zipped[V1, V2]] {
 	}
 }
 
-// Zip2 returns an iterator that iterates x and y in parallel,
-// yielding Zipped2 values of successive elements of x and y.
-// If one sequence ends before the other, the iteration continues
-// with Zipped2 values in which either Ok1 or Ok2 is false,
-// depending on which sequence ended first.
-//
-// Zip2 is a useful building block for adapters that process
-// pairs of sequences. For example, Equal2 can be defined as:
-//
-//	func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
-//		for z := range Zip2(x, y) {
-//			if z.Ok1 != z.Ok2 || z.K1 != z.K2 || z.V1 != z.V2 {
-//				return false
-//			}
-//		}
-//		return true
-//	}
 func Zip2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2]) Seq[Zipped2[K1, V1, K2, V2]] {
 	return func(yield func(z Zipped2[K1, V1, K2, V2]) bool) {
 		next, stop := Pull2(y)
@@ -400,7 +304,6 @@ func Zip2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2]) Seq[Zipped2[K1, V1
 	}
 }
 
-// ToSlice return a slice containing all elements from seq.
 func ToSlice[T any](seq Seq[T]) (out []T) {
 	seq(func(t T) bool {
 		out = append(out, t)
@@ -468,7 +371,7 @@ func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func()) {
 	ch := make(chan V)
 	done := make(chan struct{})
 	quit := make(chan struct{})
-	err := globalXiterPool.Submit(
+	err := globalXIterPool.Submit(
 		func() {
 			defer close(ch)
 			seq(func(v V) bool {
@@ -501,7 +404,7 @@ func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func()) {
 	stop = func() {
 		select {
 		case <-quit:
-			// Already closed
+
 		default:
 			close(quit)
 		}
@@ -514,7 +417,7 @@ func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func()) {
 	ch := make(chan union.U2[K, V])
 	done := make(chan struct{})
 	quit := make(chan struct{})
-	err := globalXiterPool.Submit(
+	err := globalXIterPool.Submit(
 		func() {
 			defer close(ch)
 			seq(func(k K, v V) bool {
@@ -547,7 +450,7 @@ func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func()) {
 	stop = func() {
 		select {
 		case <-quit:
-			// Already closed
+
 		default:
 			close(quit)
 		}
@@ -556,7 +459,6 @@ func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func()) {
 	return next, stop
 }
 
-// AllFromSeq return true if all elements from seq satisfy the condition evaluated by f.
 func AllFromSeq[T any](seq Seq[T], f func(T) bool) bool {
 	res := true
 	seq(func(v T) bool {
@@ -569,7 +471,6 @@ func AllFromSeq[T any](seq Seq[T], f func(T) bool) bool {
 	return res
 }
 
-// AnyFromSeq return true if any elements from seq satisfy the condition evaluated by f.
 func AnyFromSeq[T any](seq Seq[T], f func(T) bool) bool {
 	res := false
 	seq(func(v T) bool {
@@ -582,7 +483,6 @@ func AnyFromSeq[T any](seq Seq[T], f func(T) bool) bool {
 	return res
 }
 
-// AvgFromSeq return the average value of all elements from seq.
 func AvgFromSeq[T constraints.Number](seq Seq[T]) float64 {
 	var sum T
 	count := 0
@@ -598,7 +498,6 @@ func AvgFromSeq[T constraints.Number](seq Seq[T]) float64 {
 	return float64(sum) / float64(count)
 }
 
-// AvgByFromSeq return the average value of all elements from seq, evaluated by f.
 func AvgByFromSeq[V any, T constraints.Number](seq Seq[V], f func(V) T) float64 {
 	var sum T
 	count := 0
@@ -614,7 +513,6 @@ func AvgByFromSeq[V any, T constraints.Number](seq Seq[V], f func(V) T) float64 
 	return float64(sum) / float64(count)
 }
 
-// Contains return true if v is in seq.
 func Contains[T comparable](seq Seq[T], v T) bool {
 	res := false
 	seq(func(t T) bool {
@@ -627,7 +525,6 @@ func Contains[T comparable](seq Seq[T], v T) bool {
 	return res
 }
 
-// ContainsBy return true if any element from seq satisfies the condition evaluated by f.
 func ContainsBy[T any](seq Seq[T], f func(T) bool) bool {
 	res := false
 	seq(func(t T) bool {
@@ -640,7 +537,6 @@ func ContainsBy[T any](seq Seq[T], f func(T) bool) bool {
 	return res
 }
 
-// ContainsAny return true if any element from seq is in vs.
 func ContainsAny[T comparable](seq Seq[T], vs []T) bool {
 	if len(vs) == 0 {
 		return false
@@ -660,7 +556,6 @@ func ContainsAny[T comparable](seq Seq[T], vs []T) bool {
 	return res
 }
 
-// ContainsAll return true if all elements from seq is in vs.
 func ContainsAll[T comparable](seq Seq[T], vs []T) bool {
 	if len(vs) == 0 {
 		return true
@@ -681,7 +576,6 @@ func ContainsAll[T comparable](seq Seq[T], vs []T) bool {
 	return len(m) == 0
 }
 
-// Count return the number of elements in seq.
 func Count[T any](seq Seq[T]) int {
 	var count int
 	seq(func(t T) bool {
@@ -691,7 +585,6 @@ func Count[T any](seq Seq[T]) int {
 	return count
 }
 
-// Find return the first element from seq that satisfies the condition evaluated by f with a boolean representing whether it exists.
 func Find[T any](seq Seq[T], f func(T) bool) (val T, found bool) {
 	seq(func(t T) bool {
 		found = f(t)
@@ -704,7 +597,6 @@ func Find[T any](seq Seq[T], f func(T) bool) (val T, found bool) {
 	return
 }
 
-// FindO return the first element from seq that satisfies the condition evaluated by f.
 func FindO[T any](seq Seq[T], f func(T) bool) optional.O[T] {
 	var res = optional.Empty[T]()
 	seq(func(t T) bool {
@@ -717,14 +609,12 @@ func FindO[T any](seq Seq[T], f func(T) bool) optional.O[T] {
 	return res
 }
 
-// ForEach execute f for each element in seq.
 func ForEach[T any](seq Seq[T], f func(T) bool) {
 	seq(func(t T) bool {
 		return f(t)
 	})
 }
 
-// ForEachIdx execute f for each element in seq with its index.
 func ForEachIdx[T any](seq Seq[T], f func(idx int, v T) bool) {
 	i := 0
 	seq(func(t T) bool {
@@ -734,7 +624,6 @@ func ForEachIdx[T any](seq Seq[T], f func(idx int, v T) bool) {
 	})
 }
 
-// HeadO return the first element from seq.
 func HeadO[T any](seq Seq[T]) optional.O[T] {
 	res := optional.Empty[T]()
 	seq(func(t T) bool {
@@ -744,7 +633,6 @@ func HeadO[T any](seq Seq[T]) optional.O[T] {
 	return res
 }
 
-// Head return the first element from seq with a boolean representing whether it is at least one element in seq.
 func Head[T any](seq Seq[T]) (v T, hasOne bool) {
 	seq(func(t T) bool {
 		v = t
@@ -754,20 +642,7 @@ func Head[T any](seq Seq[T]) (v T, hasOne bool) {
 	return
 }
 
-// Join return the concatenation of all elements in seq with sep.
 func Join[T ~string](seq Seq[T], sep T) T {
-	//var out T
-	//first := false
-	//seq(func(t T) bool {
-	//	if first {
-	//		first = true
-	//	} else {
-	//		out += sep
-	//	}
-	//	out += t
-	//	return true
-	//})
-	//return out
 
 	elems := make([]string, 0, 10)
 	seq(func(t T) bool {
@@ -777,7 +652,6 @@ func Join[T ~string](seq Seq[T], sep T) T {
 	return T(strings.Join(elems, string(sep)))
 }
 
-// Max returns the maximum element in seq.
 func Max[T constraints.Ordered](seq Seq[T]) (r optional.O[T]) {
 	first := true
 	var _max T
@@ -796,7 +670,6 @@ func Max[T constraints.Ordered](seq Seq[T]) (r optional.O[T]) {
 	return optional.FromValue(_max)
 }
 
-// MaxBy return the maximum element in seq, evaluated by f.
 func MaxBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.O[T]) {
 	first := true
 	var _max T
@@ -815,7 +688,6 @@ func MaxBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 	return optional.FromValue(_max)
 }
 
-// Min return the minimum element in seq.
 func Min[T constraints.Ordered](seq Seq[T]) (r optional.O[T]) {
 	first := true
 	var _min T
@@ -834,7 +706,6 @@ func Min[T constraints.Ordered](seq Seq[T]) (r optional.O[T]) {
 	return optional.FromValue(_min)
 }
 
-// MinBy return the minimum element in seq, evaluated by f.
 func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.O[T]) {
 	first := true
 	var _min T
@@ -853,7 +724,6 @@ func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 	return optional.FromValue(_min)
 }
 
-// PullOut pull out n elements from seq.
 func PullOut[T any](seq Seq[T], n int) (out []T) {
 	if n == 0 {
 		return
@@ -866,7 +736,7 @@ func PullOut[T any](seq Seq[T], n int) (out []T) {
 			n--
 			return true
 		})
-	} else { // n < 0
+	} else {
 		seq(func(t T) bool {
 			out = append(out, t)
 			return true
@@ -875,7 +745,6 @@ func PullOut[T any](seq Seq[T], n int) (out []T) {
 	return out
 }
 
-// Skip return a seq that skip n elements from seq.
 func Skip[T any](seq Seq[T], n int) Seq[T] {
 	return func(yield func(T) bool) {
 		seq(func(v T) bool {
@@ -889,7 +758,6 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 	}
 }
 
-// Replace return a seq that replace from -> to
 func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 	return func(yield func(T) bool) {
 		count := n
@@ -911,12 +779,10 @@ func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 	}
 }
 
-// ReplaceAll return a seq that replace all from -> to
 func ReplaceAll[T comparable](seq Seq[T], from, to T) Seq[T] {
 	return Replace(seq, from, to, -1)
 }
 
-// FromSliceShuffle return a seq that shuffle the elements in the input slice.
 func FromSliceShuffle[T any](in []T) Seq[T] {
 	randPerm := rand.Perm(len(in))
 	return func(yield func(T) bool) {
