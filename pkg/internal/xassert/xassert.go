@@ -2,6 +2,7 @@ package xassert
 
 import (
 	"fmt"
+
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 )
 

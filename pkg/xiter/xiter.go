@@ -122,7 +122,8 @@ func Limit[V any](seq Seq[V], n int) Seq[V] {
 			if !yield(v) {
 				return
 			}
-			if n--; n <= 0 {
+			n--
+			if n <= 0 {
 				break
 			}
 		}
@@ -139,7 +140,8 @@ func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
 			if !yield(k, v) {
 				return
 			}
-			if n--; n <= 0 {
+			n--
+			if n <= 0 {
 				break
 			}
 		}
