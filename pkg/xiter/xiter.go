@@ -704,20 +704,12 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range seq {
-			// n == 0 means we have no more elements need to be replaced
-			if n == 0 {
-				if !yield(v) {
-					break
-				}
-				continue
-			} else if n > 0 { // we have n elements need to be replaced
-				n--
-			} else { // n < 0 means we need to replace all elements
-
-			}
-			if v == from {
+			if n != 0 && v == from {
 				if !yield(to) {
 					break
+				}
+				if n > 0 {
+					n--
 				}
 			} else {
 				if !yield(v) {

@@ -31,69 +31,86 @@ type Seq2[K, V any] func(yield func(K, V) bool)
 // Concat returns an iterator over the concatenation of the sequences.
 func Concat[V any](seqs ...Seq[V]) Seq[V] {
 	return func(yield func(V) bool) {
+		contine := false
 		for _, seq := range seqs {
 			seq(func(v V) bool {
-				return yield(v)
+				contine = yield(v)
+				return contine
 			})
+			if !contine {
+				break
+			}
 		}
 	}
 }
 
 // Concat2 returns an iterator over the concatenation of the sequences.
 func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V] {
+	contine := false
 	return func(yield func(K, V) bool) {
 		for _, seq := range seqs {
 			seq(func(k K, v V) bool {
-				return yield(k, v)
+				contine = yield(k, v)
+				return contine
 			})
+			if !contine {
+				return
+			}
 		}
 	}
 }
 
 // Equal reports whether the two sequences are equal.
 func Equal[V comparable](x, y Seq[V]) bool {
+	eq := true
 	Zip(x, y)(func(z Zipped[V, V]) bool {
 		if z.Ok1 != z.Ok2 || z.V1 != z.V2 {
+			eq = false
 			return false
 		}
 		return true
 	})
-	return true
+	return eq
 }
 
 // Equal2 reports whether the two sequences are equal.
 func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
+	eq := true
 	Zip2(x, y)(func(z Zipped2[K, V, K, V]) bool {
 		if z.Ok1 != z.Ok2 || z.K1 != z.K2 || z.V1 != z.V2 {
+			eq = false
 			return false
 		}
 		return true
 	})
 
-	return true
+	return eq
 }
 
 // EqualFunc reports whether the two sequences are equal according to the function f.
 func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool {
+	eq := true
 	Zip(x, y)(func(z Zipped[V1, V2]) bool {
 		if z.Ok1 != z.Ok2 || !f(z.V1, z.V2) {
+			eq = false
 			return false
 		}
 		return true
 	})
-	return true
+	return eq
 }
 
 // EqualFunc2 reports whether the two sequences are equal according to the function f.
 func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V1, K2, V2) bool) bool {
+	eq := true
 	Zip2(x, y)(func(z Zipped2[K1, V1, K2, V2]) bool {
 		if z.Ok1 != z.Ok2 || !f(z.K1, z.V1, z.K2, z.V2) {
+			eq = false
 			return false
 		}
 		return true
 	})
-
-	return true
+	return eq
 }
 
 // Filter returns an iterator over seq that only includes
@@ -129,6 +146,9 @@ func Limit[V any](seq Seq[V], n int) Seq[V] {
 			return
 		}
 		seq(func(v V) bool {
+			if n <= 0 {
+				return false
+			}
 			if !yield(v) {
 				return false
 			}
@@ -147,6 +167,9 @@ func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V] {
 			return
 		}
 		seq(func(k K, v V) bool {
+			if n <= 0 {
+				return false
+			}
 			if !yield(k, v) {
 				return false
 			}
@@ -869,20 +892,21 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 // Replace return a seq that replace from -> to
 func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 	return func(yield func(T) bool) {
+		count := n
 		seq(func(v T) bool {
-			// n == 0 means we have no more elements need to be replaced
-			if n == 0 {
-				return yield(v)
-			} else if n > 0 { // we have n elements need to be replaced
-				n--
-			} else { // n < 0 means we need to replace all elements
-
-			}
-			if v == from {
-				return yield(to)
+			if count != 0 && v == from {
+				if !yield(to) {
+					return false
+				}
+				if count > 0 {
+					count--
+				}
 			} else {
-				return yield(v)
+				if !yield(v) {
+					return false
+				}
 			}
+			return true
 		})
 	}
 }

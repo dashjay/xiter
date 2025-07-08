@@ -1,15 +1,25 @@
 package xiter_test
 
 import (
+	"bytes"
 	"fmt"
+	"math"
+	"strconv"
+	"testing"
+
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/stretchr/testify/assert"
-	"math"
-	"strconv"
-	"testing"
 )
+
+func testLimit[T any](t *testing.T, seq xiter.Seq[T], n int) {
+	assert.Len(t, xiter.ToSlice(xiter.Limit(seq, 1)), n)
+}
+
+func testLimit2[K, V any](t *testing.T, seq xiter.Seq2[K, V], n int) {
+	assert.Len(t, xiter.ToSliceSeq2Key(xiter.Limit2(seq, 1)), n)
+}
 
 func avg[T constraints.Number](in []T) float64 {
 	if len(in) == 0 {
@@ -103,6 +113,10 @@ func TestXIter(t *testing.T) {
 		for k, v := range newMap {
 			assert.Equal(t, v, m[k])
 		}
+
+		assert.Len(t, xiter.ToSlice(xiter.Limit(xiter.FromMapKeys(m), 1)), 1)
+		assert.Len(t, xiter.ToSlice(xiter.Limit(xiter.FromMapValues(m), 1)), 1)
+
 	})
 
 	t.Run("test all", func(t *testing.T) {
@@ -317,6 +331,7 @@ func TestXIter61898(t *testing.T) {
 
 	t.Run("concat", func(t *testing.T) {
 		seq := xiter.Concat(xiter.FromSlice(range1), xiter.FromSlice(range2))
+		testLimit(t, seq, 1)
 		next, stop := xiter.Pull(seq)
 		defer stop()
 
@@ -343,6 +358,8 @@ func TestXIter61898(t *testing.T) {
 		xiterMapa := xiter.FromMapKeyAndValues(mapA)
 		xiterMapb := xiter.FromMapKeyAndValues(mapB)
 		xiterMap := xiter.Concat2(xiterMapa, xiterMapb)
+		testLimit2(t, xiterMap, 1)
+
 		mapAB := xiter.ToMap(xiterMap)
 
 		for k, v := range mapA {
@@ -358,11 +375,15 @@ func TestXIter61898(t *testing.T) {
 	t.Run("equal", func(t *testing.T) {
 		seq1 := xiter.FromSlice(range1)
 		assert.True(t, xiter.Equal(seq1, xiter.FromSlice(_range(range1Start, range1End))))
+		// not equal
+		assert.False(t, xiter.Equal(seq1, xiter.Limit(xiter.FromSlice(_range(range1Start, range1End)), 1)))
 	})
 
 	t.Run("equal2", func(t *testing.T) {
 		seq1 := xiter.FromSliceIdx(range1)
 		assert.True(t, xiter.Equal2(seq1, xiter.FromSliceIdx(_range(range1Start, range1End))))
+		// not equal
+		assert.False(t, xiter.Equal2(seq1, xiter.Limit2(xiter.FromSliceIdx(_range(range1Start, range1End)), 2)))
 	})
 
 	t.Run("equal_func", func(t *testing.T) {
@@ -370,11 +391,20 @@ func TestXIter61898(t *testing.T) {
 		assert.True(t, xiter.EqualFunc(seq1, xiter.FromSlice(_range(range1Start, range1End)), func(a int, b int) bool {
 			return a == b
 		}))
+		// not equal
+		assert.False(t, xiter.EqualFunc(xiter.Limit(seq1, 1), xiter.FromSlice(_range(range1Start, range1End)), func(a int, b int) bool {
+			return a == b
+		}))
 	})
 
 	t.Run("equal_func2", func(t *testing.T) {
 		seq1 := xiter.FromSliceIdx(range1)
 		assert.True(t, xiter.EqualFunc2(seq1, xiter.FromSliceIdx(_range(range1Start, range1End)), func(k1, k2, v1, v2 int) bool {
+			return k1 == k2 && v1 == v2
+		}))
+
+		// not equal
+		assert.False(t, xiter.EqualFunc2(xiter.Limit2(seq1, 2), xiter.FromSliceIdx(_range(range1Start, range1End)), func(k1, k2, v1, v2 int) bool {
 			return k1 == k2 && v1 == v2
 		}))
 	})
@@ -394,6 +424,7 @@ func TestXIter61898(t *testing.T) {
 			}
 		})
 		assert.True(t, xiter.Equal(seq1, expectedSeq))
+		assert.False(t, xiter.Equal(xiter.Limit(seq1, 1), expectedSeq))
 	})
 
 	t.Run("filter2", func(t *testing.T) {
@@ -411,25 +442,33 @@ func TestXIter61898(t *testing.T) {
 			}
 		})
 		assert.True(t, xiter.Equal2(seq1, expectedSeq))
+		assert.False(t, xiter.Equal2(xiter.Limit2(seq1, 1), expectedSeq))
 	})
 
 	t.Run("limit", func(t *testing.T) {
 		t.Run("limit zero", func(t *testing.T) {
 			seq1 := xiter.FromSlice(range1)
-			seq1Limit0 := xiter.Limit(seq1, 0)
-			assert.Len(t, xiter.ToSlice(seq1Limit0), 0)
+			seq1Limited := xiter.Limit(seq1, 0)
+			assert.Len(t, xiter.ToSlice(seq1Limited), 0)
 		})
 
 		t.Run("limit one", func(t *testing.T) {
 			seq1 := xiter.FromSlice(range1)
-			seq1Limit0 := xiter.Limit(seq1, 1)
-			assert.Len(t, xiter.ToSlice(seq1Limit0), 1)
+			seq1Limited := xiter.Limit(seq1, 1)
+			assert.Len(t, xiter.ToSlice(seq1Limited), 1)
 		})
 
 		t.Run("limit large", func(t *testing.T) {
 			seq1 := xiter.FromSlice(range1)
-			seq1Limit0 := xiter.Limit(seq1, math.MaxInt64)
-			assert.Len(t, xiter.ToSlice(seq1Limit0), range1End-range1Start)
+			seq1Limited := xiter.Limit(seq1, math.MaxInt64)
+			assert.Len(t, xiter.ToSlice(seq1Limited), range1End-range1Start)
+		})
+
+		t.Run("limit limit", func(t *testing.T) {
+			seq1 := xiter.FromSlice(range1)
+			seq1Limited := xiter.Limit(seq1, math.MaxInt64)
+			seq1Limited = xiter.Limit(seq1Limited, 1)
+			assert.Len(t, xiter.ToSlice(seq1Limited), 1)
 		})
 	})
 
@@ -452,6 +491,13 @@ func TestXIter61898(t *testing.T) {
 			assert.Len(t, xiter.ToSliceSeq2Key(seq1Limit0), range1End-range1Start)
 			assert.Equal(t, 0, xiter.ToSliceSeq2Key(seq1Limit0)[0])
 			assert.Equal(t, range1End-1, xiter.ToSliceSeq2Key(seq1Limit0)[range1End-1])
+		})
+
+		t.Run("limit2 limit2", func(t *testing.T) {
+			seq1 := xiter.FromSliceIdx(range1)
+			seq1Limited := xiter.Limit2(seq1, math.MaxInt64)
+			seq1Limited = xiter.Limit2(seq1Limited, 1)
+			assert.Len(t, xiter.ToSliceSeq2Key(seq1Limited), 1)
 		})
 	})
 
@@ -476,6 +522,10 @@ func TestXIter61898(t *testing.T) {
 			assert.Equal(t, fmt.Sprintf("%d", i), strArr[i])
 			assert.Equal(t, fmt.Sprintf("%d", i), strArr2[i])
 		}
+
+		for i := 0; i < 10; i++ {
+			assert.Len(t, xiter.ToSliceSeq2Key(xiter.Limit2(strSeq, i)), i)
+		}
 	})
 
 	t.Run("merge", func(t *testing.T) {
@@ -493,35 +543,54 @@ func TestXIter61898(t *testing.T) {
 		mergedSeq = xiter.Merge(xiter.FromSlice(odds), xiter.FromSlice(evens))
 		arr := xiter.ToSlice(mergedSeq)
 		assert.Equal(t, _range(0, 1000), arr)
+
+		for i := 0; i < 100; i++ {
+			assert.Len(t, xiter.ToSlice(xiter.Limit(mergedSeq, i)), i)
+		}
+
+		shortSeq := xiter.FromSlice([]int{})
+		longSeq := xiter.FromSlice([]int{1, 2, 3})
+		shortLongSeq := xiter.Merge(shortSeq, longSeq)
+		longShortSeq := xiter.Merge(longSeq, shortSeq)
+		assert.True(t, xiter.Equal(shortLongSeq, longSeq))
+		assert.True(t, xiter.Equal(longShortSeq, longSeq))
+
+		assert.Len(t, xiter.ToSlice(xiter.Limit(shortLongSeq, 1)), 1)
+		assert.Len(t, xiter.ToSlice(xiter.Limit(shortLongSeq, 2)), 2)
+		assert.Len(t, xiter.ToSlice(xiter.Limit(shortLongSeq, 3)), 3)
+		assert.Len(t, xiter.ToSlice(xiter.Limit(longShortSeq, 1)), 1)
+		assert.Len(t, xiter.ToSlice(xiter.Limit(longShortSeq, 2)), 2)
+		assert.Len(t, xiter.ToSlice(xiter.Limit(longShortSeq, 3)), 3)
+
 	})
 
 	t.Run("merge2", func(t *testing.T) {
 		var seq1 = xiter.Seq2[int, string](func(yield func(int, string) bool) {
 			for i := 0; i < 10; i++ {
 				if !yield(i, fmt.Sprintf("%d", i)) {
-					break
+					return
 				}
 			}
 			for i := 20; i < 30; i++ {
 				if !yield(i, fmt.Sprintf("%d", i)) {
-					break
+					return
 				}
 			}
 			for i := 40; i < 50; i++ {
 				if !yield(i, fmt.Sprintf("%d", i)) {
-					break
+					return
 				}
 			}
 		})
 		var seq2 = xiter.Seq2[int, string](func(yield func(int, string) bool) {
 			for i := 10; i < 20; i++ {
 				if !yield(i, fmt.Sprintf("%d", i)) {
-					break
+					return
 				}
 			}
 			for i := 30; i < 40; i++ {
 				if !yield(i, fmt.Sprintf("%d", i)) {
-					break
+					return
 				}
 			}
 		})
@@ -533,7 +602,16 @@ func TestXIter61898(t *testing.T) {
 				}
 			}
 		})
+
 		assert.True(t, xiter.Equal2(mergedSeq, expectedSeq))
+		for i := 0; i < 50; i++ {
+			assert.Len(t, xiter.ToSliceSeq2Key(xiter.Limit2(mergedSeq, i)), i)
+		}
+		mergedSeq = xiter.Merge2(seq2, seq1)
+		assert.True(t, xiter.Equal2(mergedSeq, expectedSeq))
+		for i := 0; i < 50; i++ {
+			assert.Len(t, xiter.ToSliceSeq2Key(xiter.Limit2(mergedSeq, i)), i)
+		}
 	})
 
 	t.Run("reduce", func(t *testing.T) {
@@ -634,6 +712,38 @@ func TestXIter61898(t *testing.T) {
 				assert.False(t, v.Ok1)
 				assert.True(t, v.Ok2)
 				assert.Equal(t, i, v.V2)
+			}
+		})
+	})
+
+	t.Run("replace", func(t *testing.T) {
+		t.Run("case_replace_1", func(t *testing.T) {
+			replacedSeq := xiter.Replace(xiter.FromSlice(range1), 1, 2, 1)
+			arr := xiter.ToSlice(replacedSeq)
+			assert.Equal(t, 2, arr[1])
+
+			for i := 0; i < 10; i++ {
+				assert.Len(t, xiter.ToSlice(xiter.Limit(replacedSeq, i)), i)
+			}
+		})
+
+		t.Run("case_replace_0", func(t *testing.T) {
+			replacedSeq := xiter.Replace(xiter.FromSlice(range1), 1, 2, 0)
+			arr := xiter.ToSlice(replacedSeq)
+			assert.Equal(t, range1, arr)
+		})
+
+		t.Run("case_replace_all", func(t *testing.T) {
+			arr := xiter.ToSlice(xiter.Replace(xiter.FromSlice(bytes.Repeat([]byte("b"), 1024)), 'b', 'a', -1))
+			arr1 := xiter.ToSlice(xiter.ReplaceAll(xiter.FromSlice(bytes.Repeat([]byte("b"), 1024)), 'b', 'a'))
+			assert.Equal(t, bytes.Repeat([]byte("a"), 1024), arr)
+			assert.Equal(t, bytes.Repeat([]byte("a"), 1024), arr1)
+		})
+		t.Run("replace limit", func(t *testing.T) {
+			replacedSeq := xiter.Replace(xiter.FromSlice(bytes.Repeat([]byte("b"), 1024)), 'b', 'a', -1)
+			for i := 1; i < 100; i++ {
+
+				assert.Equal(t, bytes.Repeat([]byte("a"), i), xiter.ToSlice(xiter.Limit(replacedSeq, i)))
 			}
 		})
 	})
