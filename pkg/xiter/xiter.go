@@ -303,7 +303,7 @@ func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum 
 //	}
 func Zip[V1, V2 any](x Seq[V1], y Seq[V2]) Seq[Zipped[V1, V2]] {
 	return func(yield func(z Zipped[V1, V2]) bool) {
-		next, stop := Pull(Seq[V2](y))
+		next, stop := Pull(y)
 		defer stop()
 		v2, ok2 := next()
 		for v1 := range x {
@@ -664,9 +664,10 @@ func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 
 // PullOut pull out n elements from seq.
 func PullOut[T any](seq Seq[T], n int) (out []T) {
-	if n == 0 {
+	switch {
+	case n == 0:
 		return
-	} else if n > 0 {
+	case n > 0:
 		out = make([]T, 0, n)
 		for v := range seq {
 			if n == 0 {
@@ -676,7 +677,7 @@ func PullOut[T any](seq Seq[T], n int) (out []T) {
 			n--
 		}
 		return out
-	} else { // n < 0 means no limit
+	default:
 		out = make([]T, 0)
 		for v := range seq {
 			out = append(out, v)
@@ -711,10 +712,8 @@ func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T] {
 				if n > 0 {
 					n--
 				}
-			} else {
-				if !yield(v) {
-					break
-				}
+			} else if !yield(v) {
+				break
 			}
 		}
 	}

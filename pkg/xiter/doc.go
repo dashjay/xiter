@@ -1,7 +1,6 @@
 // Package xiter provides the abstraction of map, slice or channel types into iterators for common processing
 //
 // In most scenarios, we DO NOT need to use the xiter package directly
-//Package xiter implements basic adapters for composing iterator sequences:
 //
 // - [Concat] and [Concat2] concatenate sequences.
 // - [Equal], [Equal2], [EqualFunc], and [EqualFunc2] check whether two sequences contain equal values.
