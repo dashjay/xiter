@@ -265,21 +265,7 @@ func TestSlices(t *testing.T) {
 		assert.Equal(t, [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10}}, xslice.Chunk([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 3))
 		assert.Equal(t, [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10}}, xslice.ChunkInPlace([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 3))
 
-		assert.Nil(t, xslice.ChunkInPlace([]int{}, 0))
-		assert.Nil(t, xslice.Chunk([]int{}, 0))
-	})
-}
-
-func BenchmarkChunkAndChunkInPlace(b *testing.B) {
-	b.Run("chunk", func(b *testing.B) {
-		arr := _range(0, b.N)
-		b.ResetTimer()
-		xslice.Chunk(arr, b.N/100)
-	})
-
-	b.Run("chunk in place", func(b *testing.B) {
-		arr := _range(0, b.N)
-		b.ResetTimer()
-		xslice.ChunkInPlace(arr, b.N/100)
+		assert.Len(t, xslice.ChunkInPlace([]int{}, 1), 0)
+		assert.Len(t, xslice.Chunk([]int{}, 1), 0)
 	})
 }

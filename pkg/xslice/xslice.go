@@ -1,6 +1,7 @@
 package xslice
 
 import (
+	"github.com/dashjay/xiter/pkg/internal/xassert"
 	"math/rand"
 
 	"github.com/dashjay/xiter/pkg/internal/constraints"
@@ -459,9 +460,7 @@ func ShuffleInPlace[T any, Slice ~[]T](in Slice) {
 //	xslice.Chunk([]int{1, 2, 3, 4, 5}, 10) 👉 [[1, 2, 3, 4, 5]]
 //	xslice.Chunk([]int{1, 2, 3, 4, 5}, 0) 👉 []int{}
 func Chunk[T any, Slice ~[]T](in Slice, chunkSize int) []Slice {
-	if chunkSize <= 0 {
-		return nil
-	}
+	xassert.MustBePositive(chunkSize)
 	out := make([]Slice, 0, len(in)/chunkSize+1)
 	seq := xiter.FromSlice(in)
 	for {
@@ -482,9 +481,7 @@ func Chunk[T any, Slice ~[]T](in Slice, chunkSize int) []Slice {
 //	xslice.Chunk([]int{1, 2, 3, 4, 5}, 10) 👉 [[1, 2, 3, 4, 5]]
 //	xslice.Chunk([]int{1, 2, 3, 4, 5}, 0) 👉 []int{}
 func ChunkInPlace[T any, Slice ~[]T](in Slice, chunkSize int) []Slice {
-	if chunkSize <= 0 {
-		return nil
-	}
+	xassert.MustBePositive(chunkSize)
 	out := make([]Slice, 0, len(in)/chunkSize+1)
 	for i := 0; i < len(in); i += chunkSize {
 		end := i + chunkSize
