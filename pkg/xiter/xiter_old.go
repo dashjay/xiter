@@ -5,19 +5,20 @@ package xiter
 
 import (
 	"math/rand"
+	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
-	"github.com/panjf2000/ants/v2"
 )
 
-var globalXIterPool *ants.Pool
+//var globalXIterPool *ants.Pool
 
 func init() {
-	globalXIterPool, _ = ants.NewPool(1_000_000)
+	//globalXIterPool, _ = ants.NewPool(-1, ants.WithPanicHandler(func(a any) {}))
 }
 
 type Seq[V any] func(yield func(V) bool)
@@ -328,6 +329,22 @@ func ToSliceSeq2Value[K, V any](seq Seq2[K, V]) (out []V) {
 	return
 }
 
+func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K] {
+	return func(yield func(K) bool) {
+		in(func(k K, v V) bool {
+			return yield(k)
+		})
+	}
+}
+
+func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V] {
+	return func(yield func(V) bool) {
+		in(func(k K, v V) bool {
+			return yield(v)
+		})
+	}
+}
+
 func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V) {
 	out = make(map[K]V)
 	seq(func(k K, v V) bool {
@@ -367,33 +384,49 @@ func FromMapKeyAndValues[K comparable, V any](m map[K]V) Seq2[K, V] {
 	}
 }
 
+// Pull has async operation, under 1.23 we provide goroutine version which will create a lot goroutine,
+// the behavior is not same as the 1.23 version
+// so we strongly recommend you to use go new version like 1.23 to use this function.
+// Deprecated: Upgrade to go 1.23 to use the internal implement
 func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func()) {
 	ch := make(chan V)
 	done := make(chan struct{})
 	quit := make(chan struct{})
-	err := globalXIterPool.Submit(
-		func() {
-			defer close(ch)
-			seq(func(v V) bool {
-				select {
-				case ch <- v:
-					return true
-				case <-quit:
-					return false
-				}
-			})
-			select {
-			case done <- struct{}{}:
-			case <-quit:
-			}
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
+	panicked := make(chan interface{})
+	var seqGoroutineID int64
 
-	next = func() (v V, ok bool) {
+	go func() {
+		seqGoroutineID = getGID()
+		defer func() {
+			if r := recover(); r != nil {
+				panicked <- r
+			}
+			close(ch)
+		}()
+		seq(func(v V) bool {
+			select {
+			case ch <- v:
+				return true
+			case <-quit:
+				return false
+			}
+		})
 		select {
+		case done <- struct{}{}:
+		case <-quit:
+		}
+
+	}()
+	next = func() (v V, ok bool) {
+		if getGID() == seqGoroutineID {
+			panic("xiter: next called re-entrantly")
+		}
+		select {
+		case err, goRoutinePanicked := <-panicked:
+			if goRoutinePanicked {
+				panic(err)
+			}
+			return v, ok
 		case v, ok = <-ch:
 			return v, ok
 		case <-done:
@@ -413,33 +446,48 @@ func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func()) {
 	return next, stop
 }
 
+// Pull2 has async operation, under 1.23 we provide goroutine version which will create a lot goroutine,
+// the behavior is not same as the 1.23 version
+// so we strongly recommend you to use go new version like 1.23 to use this function.
+// Deprecated: Upgrade to go 1.23 to use the internal implement
 func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func()) {
 	ch := make(chan union.U2[K, V])
 	done := make(chan struct{})
 	quit := make(chan struct{})
-	err := globalXIterPool.Submit(
-		func() {
-			defer close(ch)
-			seq(func(k K, v V) bool {
-				select {
-				case ch <- union.U2[K, V]{T1: k, T2: v}:
-					return true
-				case <-quit:
-					return false
-				}
-			})
-			select {
-			case done <- struct{}{}:
-			case <-quit:
-			}
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
+	panicked := make(chan interface{})
+	var seqGoroutineID int64
 
-	next = func() (k K, v V, ok bool) {
+	go func() {
+		seqGoroutineID = getGID()
+		defer func() {
+			if r := recover(); r != nil {
+				panicked <- r
+			}
+			close(ch)
+		}()
+		seq(func(k K, v V) bool {
+			select {
+			case ch <- union.U2[K, V]{T1: k, T2: v}:
+				return true
+			case <-quit:
+				return false
+			}
+		})
 		select {
+		case done <- struct{}{}:
+		case <-quit:
+		}
+	}()
+	next = func() (k K, v V, ok bool) {
+		if getGID() == seqGoroutineID {
+			panic("xiter: next called re-entrantly")
+		}
+		select {
+		case err, goRoutinePanicked := <-panicked:
+			if goRoutinePanicked {
+				panic(err)
+			}
+			return k, v, ok
 		case u2, ok := <-ch:
 			return u2.T1, u2.T2, ok
 		case <-done:
@@ -792,4 +840,16 @@ func FromSliceShuffle[T any](in []T) Seq[T] {
 			}
 		}
 	}
+}
+
+// getGID returns the current goroutine ID.
+// This is an internal function and should not be used in production code.
+// It's used here for testing purposes to detect re-entrant calls.
+func getGID() int64 {
+	b := make([]byte, 64)
+	b = b[:runtime.Stack(b, false)]
+	s := strings.TrimPrefix(string(b), "goroutine ")
+	s = s[:strings.Index(s, " ")]
+	gid, _ := strconv.ParseInt(s, 10, 64)
+	return gid
 }

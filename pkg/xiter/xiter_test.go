@@ -14,11 +14,11 @@ import (
 )
 
 func testLimit[T any](t *testing.T, seq xiter.Seq[T], n int) {
-	assert.Len(t, xiter.ToSlice(xiter.Limit(seq, 1)), n)
+	assert.Len(t, xiter.ToSlice(xiter.Limit(seq, n)), n)
 }
 
 func testLimit2[K, V any](t *testing.T, seq xiter.Seq2[K, V], n int) {
-	assert.Len(t, xiter.ToSliceSeq2Key(xiter.Limit2(seq, 1)), n)
+	assert.Len(t, xiter.ToSliceSeq2Key(xiter.Limit2(seq, n)), n)
 }
 
 func avg[T constraints.Number](in []T) float64 {
@@ -40,7 +40,7 @@ func _range(a, b int) []int {
 	return res
 }
 
-func TestPull(t *testing.T) {
+func TestPullSimple(t *testing.T) {
 	seq := xiter.FromSlice(_range(0, 100))
 	next, stop := xiter.Pull(seq)
 	defer stop()
@@ -54,7 +54,7 @@ func TestPull(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestPull2(t *testing.T) {
+func TestPull2Simple(t *testing.T) {
 	seq := xiter.FromSliceIdx(_range(0, 100))
 	next, stop := xiter.Pull2(seq)
 	defer stop()
@@ -84,6 +84,19 @@ func TestXIter(t *testing.T) {
 		assert.Contains(t, xiter.ToSliceSeq2Value(xiter.FromMapKeyAndValues(m)), "1")
 		assert.Contains(t, xiter.ToSliceSeq2Value(xiter.FromMapKeyAndValues(m)), "2")
 		assert.Contains(t, xiter.ToSliceSeq2Value(xiter.FromMapKeyAndValues(m)), "3")
+
+		assert.Equal(t,
+			xiter.ToSliceSeq2Key(xiter.FromSliceIdx(_range(0, 100))),
+			xiter.ToSlice(xiter.Seq2KeyToSeq(xiter.FromSliceIdx(_range(0, 100)))),
+		)
+
+		assert.Equal(t,
+			xiter.ToSliceSeq2Value(xiter.FromSliceIdx(_range(0, 100))),
+			xiter.ToSlice(xiter.Seq2ValueToSeq(xiter.FromSliceIdx(_range(0, 100)))),
+		)
+
+		testLimit(t, xiter.Seq2KeyToSeq(xiter.FromSliceIdx(_range(0, 100))), 1)
+		testLimit(t, xiter.Seq2ValueToSeq(xiter.FromSliceIdx(_range(0, 100))), 1)
 	})
 
 	t.Run("to map", func(t *testing.T) {

@@ -477,6 +477,26 @@ func ToSliceSeq2Value[K, V any](seq Seq2[K, V]) (out []V) {
 	return
 }
 
+func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K] {
+	return func(yield func(K) bool) {
+		for k := range in {
+			if !yield(k) {
+				break
+			}
+		}
+	}
+}
+
+func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V] {
+	return func(yield func(V) bool) {
+		for _, v := range in {
+			if !yield(v) {
+				break
+			}
+		}
+	}
+}
+
 func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V) {
 	return maps.Collect(iter.Seq2[K, V](seq))
 }
