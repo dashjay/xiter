@@ -340,7 +340,7 @@ func Subset[T any, Slice ~[]T](in Slice, start, count int) Slice {
 //
 //	xslice.SubsetInPlace([]int{1, 2, 3}, 0, 2) 👉 [1, 2]
 //	xslice.SubsetInPlace([]int{1, 2, 3}, -1, 2) 👉 [2, 3]
-func SubsetInPlace[T any, Slice ~[]T](in Slice, start int, count uint) Slice {
+func SubsetInPlace[T any, Slice ~[]T](in Slice, start int, count int) Slice {
 	size := len(in)
 
 	if start < 0 {
@@ -353,10 +353,10 @@ func SubsetInPlace[T any, Slice ~[]T](in Slice, start int, count uint) Slice {
 		return Slice{}
 	}
 
-	if count > uint(size)-uint(start) {
-		count = uint(size - start)
+	if count > size-start {
+		count = size - start
 	}
-	return in[start : start+int(count)]
+	return in[start : start+count]
 }
 
 // Replace replaces the count elements in the slice from 'from' to 'to'.

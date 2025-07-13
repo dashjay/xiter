@@ -2,7 +2,6 @@ package xslice_test
 
 import (
 	"github.com/samber/lo"
-	"slices"
 	"testing"
 
 	"github.com/dashjay/xiter/pkg/xslice"
@@ -71,11 +70,6 @@ func BenchmarkSlice(b *testing.B) {
 
 	b.Run("benchmark contain", func(b *testing.B) {
 		seq := _range(1, length)
-		b.Run("baseline", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				slices.Contains(seq, length/2)
-			}
-		})
 		b.Run("xslice", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				xslice.Contains(seq, length/2)
