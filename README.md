@@ -30,6 +30,9 @@ And this package will also provide some generic utilities with iter.
 
 This package considers Go versions before 1.23, starting from Go 1.18+
 
+## Docs
+
+[Docs](./doc/doc.md)
 
 ## Contribution
 
