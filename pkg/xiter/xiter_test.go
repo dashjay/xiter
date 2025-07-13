@@ -281,13 +281,13 @@ func TestXIter(t *testing.T) {
 	t.Run("test pullout", func(t *testing.T) {
 		for i := 0; i < 1000; i++ {
 			if i < 100 {
-				assert.Len(t, xiter.PullOut(xiter.FromSlice(_range(0, 100)), i), i)
+				assert.Len(t, xiter.ToSliceN(xiter.FromSlice(_range(0, 100)), i), i)
 			} else {
-				assert.Len(t, xiter.PullOut(xiter.FromSlice(_range(0, 100)), i), 100)
+				assert.Len(t, xiter.ToSliceN(xiter.FromSlice(_range(0, 100)), i), 100)
 			}
 		}
 
-		assert.Len(t, xiter.PullOut(xiter.FromSlice(_range(0, 100)), -1), 100)
+		assert.Len(t, xiter.ToSliceN(xiter.FromSlice(_range(0, 100)), -1), 100)
 	})
 
 	t.Run("test at", func(t *testing.T) {
@@ -852,4 +852,14 @@ func ExampleZip() {
 	// 1 11
 	// 2 22
 	// 3 33
+}
+
+func ExamplePull() {
+	seq := xiter.FromSlice([]int{1, 2, 3})
+	next, stop := xiter.Pull(seq)
+	defer stop()
+	x, ok := next()
+	fmt.Println(x, ok)
+	// output:
+	// 1 true
 }

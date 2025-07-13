@@ -7,12 +7,13 @@ package cmp_test
 
 import (
 	"fmt"
-	"github.com/dashjay/xiter/pkg/cmp"
 	"math"
 	"sort"
 	"strings"
 	"testing"
 	"unsafe"
+
+	"github.com/dashjay/xiter/pkg/cmp"
 )
 
 var negzero = math.Copysign(0, -1)

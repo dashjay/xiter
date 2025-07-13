@@ -513,6 +513,16 @@ func FromMapKeyAndValues[K comparable, V any](m map[K]V) Seq2[K, V] {
 	return Seq2[K, V](maps.All(m))
 }
 
+// Pull wrapped iter.Pull create an iterator from seq.
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3})
+//	next, stop := xiter.Pull(seq)
+//	defer stop()
+//	x, ok := next()
+//	fmt.Println(x, ok)
+//	// output:
+//	// 1 true
 func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func()) {
 	return iter.Pull(iter.Seq[V](seq))
 }
@@ -776,8 +786,8 @@ func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 	return optional.FromValue(_min)
 }
 
-// PullOut pull out n elements from seq.
-func PullOut[T any](seq Seq[T], n int) (out []T) {
+// ToSliceN pull out n elements from seq.
+func ToSliceN[T any](seq Seq[T], n int) (out []T) {
 	switch {
 	case n == 0:
 		return

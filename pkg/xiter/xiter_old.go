@@ -772,7 +772,7 @@ func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 	return optional.FromValue(_min)
 }
 
-func PullOut[T any](seq Seq[T], n int) (out []T) {
+func ToSliceN[T any](seq Seq[T], n int) (out []T) {
 	if n == 0 {
 		return
 	} else if n > 0 {

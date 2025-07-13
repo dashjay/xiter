@@ -50,7 +50,7 @@ func FromSliceIdx[T any](in []T) Seq2[int, T] {
 // At return the element at index from seq.
 func At[T any](seq Seq[T], index int) optional.O[T] {
 	gassert.MustBePositive(index)
-	elements := PullOut(seq, index+1)
+	elements := ToSliceN(seq, index+1)
 	if index >= len(elements) {
 		return optional.Empty[T]()
 	}
@@ -69,7 +69,7 @@ func FromSliceReverse[T any, Slice ~[]T](in Slice) Seq[T] {
 
 // Reverse return a reversed seq.
 func Reverse[T any](seq Seq[T]) Seq[T] {
-	all := PullOut(seq, -1)
+	all := ToSliceN(seq, -1)
 	return func(yield func(T) bool) {
 		for i := len(all) - 1; i >= 0; i-- {
 			if !yield(all[i]) {
