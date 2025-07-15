@@ -81,6 +81,21 @@ func BenchmarkSlice(b *testing.B) {
 			}
 		})
 	})
+
+	b.Run("benchmark sum", func(b *testing.B) {
+		seq := _range(1, length)
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = xslice.Sum(seq)
+			}
+		})
+
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = lo.Sum(seq)
+			}
+		})
+	})
 }
 
 func BenchmarkChunk(b *testing.B) {

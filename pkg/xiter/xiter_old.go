@@ -853,3 +853,56 @@ func getGID() int64 {
 	gid, _ := strconv.ParseInt(s, 10, 64)
 	return gid
 }
+
+func Chunk[T any](seq Seq[T], n int) Seq[[]T] {
+	return func(yield func([]T) bool) {
+		tmp := make([]T, 0, n)
+		seq(func(v T) bool {
+			tmp = append(tmp, v)
+			if len(tmp) == n {
+				con := yield(tmp)
+				tmp = make([]T, 0, n)
+				return con
+			}
+			return true
+		})
+		if len(tmp) > 0 {
+			yield(tmp)
+		}
+	}
+}
+
+func Seq2ToSeqUnion[K, V any](seq Seq2[K, V]) Seq[union.U2[K, V]] {
+	return func(yield func(union.U2[K, V]) bool) {
+		seq(func(k K, v V) bool {
+			return yield(union.U2[K, V]{T1: k, T2: v})
+		})
+	}
+}
+
+func Sum[T constraints.Number](seq Seq[T]) T {
+	var sum T
+	seq(func(t T) bool {
+		sum += t
+		return true
+	})
+	return sum
+}
+
+func Index[T comparable](seq Seq[T], v T) int {
+	found := false
+	idx := 0
+	seq(func(t T) bool {
+		if t == v {
+			found = true
+			return false
+		}
+		idx++
+		return true
+	})
+	if found {
+		return idx
+	} else {
+		return -1
+	}
+}

@@ -113,6 +113,11 @@ func TestSlices(t *testing.T) {
 			xslice.FindO(_range(0, 10), func(x int) bool { return x == -1 }).Ok())
 	})
 
+	t.Run("test index", func(t *testing.T) {
+		assert.Equal(t, -1, xslice.Index([]byte{}, 'x'))
+		assert.Equal(t, 0, xslice.Index([]byte("aabb"), 'a'))
+	})
+
 	t.Run("test foreach", func(t *testing.T) {
 		var res []int
 		xslice.ForEach(_range(0, 10), func(i int) bool {
@@ -267,5 +272,15 @@ func TestSlices(t *testing.T) {
 
 		assert.Len(t, xslice.ChunkInPlace([]int{}, 1), 0)
 		assert.Len(t, xslice.Chunk([]int{}, 1), 0)
+	})
+
+	t.Run("index", func(t *testing.T) {
+		assert.Equal(t, 50, xslice.Index(_range(0, 101), 50))
+		assert.Equal(t, -1, xslice.Index(_range(0, 101), 6666))
+	})
+
+	t.Run("sum", func(t *testing.T) {
+		assert.Equal(t, 5050, xslice.Sum(_range(0, 101)))
+		assert.Equal(t, 5050, xslice.SumN(_range(0, 101)...))
 	})
 }

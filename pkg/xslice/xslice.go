@@ -1,8 +1,9 @@
 package xslice
 
 import (
-	"github.com/dashjay/xiter/pkg/internal/xassert"
 	"math/rand"
+
+	"github.com/dashjay/xiter/pkg/internal/xassert"
 
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
@@ -491,4 +492,18 @@ func ChunkInPlace[T any, Slice ~[]T](in Slice, chunkSize int) []Slice {
 		out = append(out, in[i:end])
 	}
 	return out
+}
+
+// Index returns the index of the first element in the slice that is equal to v.
+// If no such element is found, -1 is returned.
+func Index[T comparable, Slice ~[]T](in Slice, v T) int {
+	return xiter.Index(xiter.FromSlice(in), v)
+}
+
+func SumN[T constraints.Number](in ...T) T {
+	return xiter.Sum(xiter.FromSlice(in))
+}
+
+func Sum[T constraints.Number, Slice ~[]T](in Slice) T {
+	return xiter.Sum(xiter.FromSlice(in))
 }
