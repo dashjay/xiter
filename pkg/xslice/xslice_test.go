@@ -282,5 +282,10 @@ func TestSlices(t *testing.T) {
 	t.Run("sum", func(t *testing.T) {
 		assert.Equal(t, 5050, xslice.Sum(_range(0, 101)))
 		assert.Equal(t, 5050, xslice.SumN(_range(0, 101)...))
+
+		assert.Equal(t, 55, xslice.SumBy([]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, func(t string) int {
+			r, _ := strconv.Atoi(t)
+			return r
+		}))
 	})
 }

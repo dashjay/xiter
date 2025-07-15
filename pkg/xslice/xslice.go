@@ -3,9 +3,8 @@ package xslice
 import (
 	"math/rand"
 
-	"github.com/dashjay/xiter/pkg/internal/xassert"
-
 	"github.com/dashjay/xiter/pkg/internal/constraints"
+	"github.com/dashjay/xiter/pkg/internal/xassert"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/xiter"
 )
@@ -523,4 +522,18 @@ func Sum[T constraints.Number, Slice ~[]T](in Slice) T {
 //	xslice.SumN() 👉 0
 func SumN[T constraints.Number](in ...T) T {
 	return xiter.Sum(xiter.FromSlice(in))
+}
+
+//
+// SumBy returns the sum of all elements in the slice after applying the given function f to each element.
+//
+// EXAMPLE:
+//
+//	xslice.SumBy([]string{"1", "2", "3"}, func(x string) int {
+//		i, _ := strconv.Atoi(x)
+//		return i
+//	}) 👉 6
+//	xslice.SumBy([]string{}, func(x string) int { return 0 }) 👉 0
+func SumBy[T any, R constraints.Number, Slice ~[]T](in Slice, f func(T) R) R {
+	return xiter.Sum(xiter.Map(f, xiter.FromSlice(in)))
 }
