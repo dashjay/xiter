@@ -50,4 +50,16 @@ func TestXIterCommon(t *testing.T) {
 			assert.Equal(t, 1000-i-1, res[i])
 		}
 	})
+
+	t.Run("from chan", func(t *testing.T) {
+		ch := make(chan int, 10)
+		for i := 0; i < 10; i++ {
+			ch <- i
+		}
+		close(ch)
+		seq := xiter.FromChan(ch)
+		res := xiter.ToSlice(seq)
+		assert.Len(t, res, 10)
+		assert.Equal(t, _range(0, 10), res)
+	})
 }
