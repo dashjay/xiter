@@ -32,6 +32,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
 - [func ForEachIdx\[T any\]\(seq Seq\[T\], f func\(idx int, v T\) bool\)](<#ForEachIdx>)
 - [func Head\[T any\]\(seq Seq\[T\]\) \(v T, hasOne bool\)](<#Head>)
 - [func HeadO\[T any\]\(seq Seq\[T\]\) optional.O\[T\]](<#HeadO>)
+- [func Index\[T comparable\]\(seq Seq\[T\], v T\) int](<#Index>)
 - [func Join\[T \~string\]\(seq Seq\[T\], sep T\) T](<#Join>)
 - [func Max\[T constraints.Ordered\]\(seq Seq\[T\]\) \(r optional.O\[T\]\)](<#Max>)
 - [func MaxBy\[T constraints.Ordered\]\(seq Seq\[T\], less func\(T, T\) bool\) \(r optional.O\[T\]\)](<#MaxBy>)
@@ -41,12 +42,14 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
 - [func Pull2\[K, V any\]\(seq Seq2\[K, V\]\) \(next func\(\) \(K, V, bool\), stop func\(\)\)](<#Pull2>)
 - [func Reduce\[Sum, V any\]\(f func\(Sum, V\) Sum, sum Sum, seq Seq\[V\]\) Sum](<#Reduce>)
 - [func Reduce2\[Sum, K, V any\]\(f func\(Sum, K, V\) Sum, sum Sum, seq Seq2\[K, V\]\) Sum](<#Reduce2>)
+- [func Sum\[T constraints.Number\]\(seq Seq\[T\]\) T](<#Sum>)
 - [func ToMap\[K comparable, V any\]\(seq Seq2\[K, V\]\) \(out map\[K\]V\)](<#ToMap>)
 - [func ToSlice\[T any\]\(seq Seq\[T\]\) \(out \[\]T\)](<#ToSlice>)
 - [func ToSliceN\[T any\]\(seq Seq\[T\], n int\) \(out \[\]T\)](<#ToSliceN>)
 - [func ToSliceSeq2Key\[K, V any\]\(seq Seq2\[K, V\]\) \(out \[\]K\)](<#ToSliceSeq2Key>)
 - [func ToSliceSeq2Value\[K, V any\]\(seq Seq2\[K, V\]\) \(out \[\]V\)](<#ToSliceSeq2Value>)
 - [type Seq](<#Seq>)
+  - [func Chunk\[T any\]\(seq Seq\[T\], n int\) Seq\[\[\]T\]](<#Chunk>)
   - [func Concat\[V any\]\(seqs ...Seq\[V\]\) Seq\[V\]](<#Concat>)
   - [func Filter\[V any\]\(f func\(V\) bool, seq Seq\[V\]\) Seq\[V\]](<#Filter>)
   - [func FromMapKeys\[K comparable, V any\]\(m map\[K\]V\) Seq\[K\]](<#FromMapKeys>)
@@ -63,6 +66,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func ReplaceAll\[T comparable\]\(seq Seq\[T\], from, to T\) Seq\[T\]](<#ReplaceAll>)
   - [func Reverse\[T any\]\(seq Seq\[T\]\) Seq\[T\]](<#Reverse>)
   - [func Seq2KeyToSeq\[K, V any\]\(in Seq2\[K, V\]\) Seq\[K\]](<#Seq2KeyToSeq>)
+  - [func Seq2ToSeqUnion\[K, V any\]\(seq Seq2\[K, V\]\) Seq\[union.U2\[K, V\]\]](<#Seq2ToSeqUnion>)
   - [func Seq2ValueToSeq\[K, V any\]\(in Seq2\[K, V\]\) Seq\[V\]](<#Seq2ValueToSeq>)
   - [func Skip\[T any\]\(seq Seq\[T\], n int\) Seq\[T\]](<#Skip>)
   - [func Zip\[V1, V2 any\]\(x Seq\[V1\], y Seq\[V2\]\) Seq\[Zipped\[V1, V2\]\]](<#Zip>)
@@ -81,7 +85,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
 
 
 <a name="AllFromSeq"></a>
-## func [AllFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L535>)
+## func [AllFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L536>)
 
 ```go
 func AllFromSeq[T any](seq Seq[T], f func(T) bool) bool
@@ -90,7 +94,7 @@ func AllFromSeq[T any](seq Seq[T], f func(T) bool) bool
 AllFromSeq return true if all elements from seq satisfy the condition evaluated by f.
 
 <a name="AnyFromSeq"></a>
-## func [AnyFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L545>)
+## func [AnyFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L546>)
 
 ```go
 func AnyFromSeq[T any](seq Seq[T], f func(T) bool) bool
@@ -108,7 +112,7 @@ func At[T any](seq Seq[T], index int) optional.O[T]
 At return the element at index from seq.
 
 <a name="AvgByFromSeq"></a>
-## func [AvgByFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L569>)
+## func [AvgByFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L570>)
 
 ```go
 func AvgByFromSeq[V any, T constraints.Number](seq Seq[V], f func(V) T) float64
@@ -117,7 +121,7 @@ func AvgByFromSeq[V any, T constraints.Number](seq Seq[V], f func(V) T) float64
 AvgByFromSeq return the average value of all elements from seq, evaluated by f.
 
 <a name="AvgFromSeq"></a>
-## func [AvgFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L555>)
+## func [AvgFromSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L556>)
 
 ```go
 func AvgFromSeq[T constraints.Number](seq Seq[T]) float64
@@ -126,7 +130,7 @@ func AvgFromSeq[T constraints.Number](seq Seq[T]) float64
 AvgFromSeq return the average value of all elements from seq.
 
 <a name="Contains"></a>
-## func [Contains](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L583>)
+## func [Contains](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L584>)
 
 ```go
 func Contains[T comparable](seq Seq[T], in T) bool
@@ -135,7 +139,7 @@ func Contains[T comparable](seq Seq[T], in T) bool
 Contains return true if v is in seq.
 
 <a name="ContainsAll"></a>
-## func [ContainsAll](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L620>)
+## func [ContainsAll](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L621>)
 
 ```go
 func ContainsAll[T comparable](seq Seq[T], in []T) bool
@@ -144,7 +148,7 @@ func ContainsAll[T comparable](seq Seq[T], in []T) bool
 ContainsAll return true if all elements from seq is in vs.
 
 <a name="ContainsAny"></a>
-## func [ContainsAny](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L603>)
+## func [ContainsAny](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L604>)
 
 ```go
 func ContainsAny[T comparable](seq Seq[T], in []T) bool
@@ -153,7 +157,7 @@ func ContainsAny[T comparable](seq Seq[T], in []T) bool
 ContainsAny return true if any element from seq is in vs.
 
 <a name="ContainsBy"></a>
-## func [ContainsBy](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L593>)
+## func [ContainsBy](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L594>)
 
 ```go
 func ContainsBy[T any](seq Seq[T], f func(T) bool) bool
@@ -162,7 +166,7 @@ func ContainsBy[T any](seq Seq[T], f func(T) bool) bool
 ContainsBy return true if any element from seq satisfies the condition evaluated by f.
 
 <a name="Count"></a>
-## func [Count](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L640>)
+## func [Count](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L641>)
 
 ```go
 func Count[T any](seq Seq[T]) int
@@ -171,7 +175,7 @@ func Count[T any](seq Seq[T]) int
 Count return the number of elements in seq.
 
 <a name="Equal"></a>
-## func [Equal](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L78>)
+## func [Equal](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L79>)
 
 ```go
 func Equal[V comparable](x, y Seq[V]) bool
@@ -226,7 +230,7 @@ false
 </details>
 
 <a name="Equal2"></a>
-## func [Equal2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L89>)
+## func [Equal2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L90>)
 
 ```go
 func Equal2[K, V comparable](x, y Seq2[K, V]) bool
@@ -235,7 +239,7 @@ func Equal2[K, V comparable](x, y Seq2[K, V]) bool
 Equal2 returns whether the two Seq2 are equal. Like Equal but run with Seq2
 
 <a name="EqualFunc"></a>
-## func [EqualFunc](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L112>)
+## func [EqualFunc](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L113>)
 
 ```go
 func EqualFunc[V1, V2 any](x Seq[V1], y Seq[V2], f func(V1, V2) bool) bool
@@ -295,7 +299,7 @@ false
 </details>
 
 <a name="EqualFunc2"></a>
-## func [EqualFunc2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L123>)
+## func [EqualFunc2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L124>)
 
 ```go
 func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V1, K2, V2) bool) bool
@@ -304,7 +308,7 @@ func EqualFunc2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2], f func(K1, V
 EqualFunc2 returns whether the two sequences are equal according to the function f. Like EqualFunc but run with Seq2
 
 <a name="Find"></a>
-## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L649>)
+## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L650>)
 
 ```go
 func Find[T any](seq Seq[T], f func(T) bool) (val T, found bool)
@@ -313,7 +317,7 @@ func Find[T any](seq Seq[T], f func(T) bool) (val T, found bool)
 Find return the first element from seq that satisfies the condition evaluated by f with a boolean representing whether it exists.
 
 <a name="FindO"></a>
-## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L661>)
+## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L662>)
 
 ```go
 func FindO[T any](seq Seq[T], f func(T) bool) optional.O[T]
@@ -322,7 +326,7 @@ func FindO[T any](seq Seq[T], f func(T) bool) optional.O[T]
 FindO return the first element from seq that satisfies the condition evaluated by f.
 
 <a name="ForEach"></a>
-## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L671>)
+## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L672>)
 
 ```go
 func ForEach[T any](seq Seq[T], f func(T) bool)
@@ -331,7 +335,7 @@ func ForEach[T any](seq Seq[T], f func(T) bool)
 ForEach execute f for each element in seq.
 
 <a name="ForEachIdx"></a>
-## func [ForEachIdx](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L680>)
+## func [ForEachIdx](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L681>)
 
 ```go
 func ForEachIdx[T any](seq Seq[T], f func(idx int, v T) bool)
@@ -340,7 +344,7 @@ func ForEachIdx[T any](seq Seq[T], f func(idx int, v T) bool)
 ForEachIdx execute f for each element in seq with its index.
 
 <a name="Head"></a>
-## func [Head](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L699>)
+## func [Head](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L700>)
 
 ```go
 func Head[T any](seq Seq[T]) (v T, hasOne bool)
@@ -349,7 +353,7 @@ func Head[T any](seq Seq[T]) (v T, hasOne bool)
 Head return the first element from seq with a boolean representing whether it is at least one element in seq.
 
 <a name="HeadO"></a>
-## func [HeadO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L691>)
+## func [HeadO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L692>)
 
 ```go
 func HeadO[T any](seq Seq[T]) optional.O[T]
@@ -357,8 +361,25 @@ func HeadO[T any](seq Seq[T]) optional.O[T]
 
 HeadO return the first element from seq.
 
+<a name="Index"></a>
+## func [Index](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L950>)
+
+```go
+func Index[T comparable](seq Seq[T], v T) int
+```
+
+Index returns the index of the first element in the sequence that is equal to v. If no such element is found, \-1 is returned.
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+idx := xiter.Index(seq, 3)
+// idx is 2
+```
+
 <a name="Join"></a>
-## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L709>)
+## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L710>)
 
 ```go
 func Join[T ~string](seq Seq[T], sep T) T
@@ -367,7 +388,7 @@ func Join[T ~string](seq Seq[T], sep T) T
 Join return the concatenation of all elements in seq with sep.
 
 <a name="Max"></a>
-## func [Max](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L718>)
+## func [Max](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L719>)
 
 ```go
 func Max[T constraints.Ordered](seq Seq[T]) (r optional.O[T])
@@ -376,7 +397,7 @@ func Max[T constraints.Ordered](seq Seq[T]) (r optional.O[T])
 Max returns the maximum element in seq.
 
 <a name="MaxBy"></a>
-## func [MaxBy](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L736>)
+## func [MaxBy](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L737>)
 
 ```go
 func MaxBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.O[T])
@@ -385,7 +406,7 @@ func MaxBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 MaxBy return the maximum element in seq, evaluated by f.
 
 <a name="Min"></a>
-## func [Min](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L754>)
+## func [Min](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L755>)
 
 ```go
 func Min[T constraints.Ordered](seq Seq[T]) (r optional.O[T])
@@ -394,7 +415,7 @@ func Min[T constraints.Ordered](seq Seq[T]) (r optional.O[T])
 Min return the minimum element in seq.
 
 <a name="MinBy"></a>
-## func [MinBy](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L772>)
+## func [MinBy](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L773>)
 
 ```go
 func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.O[T])
@@ -403,7 +424,7 @@ func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.
 MinBy return the minimum element in seq, evaluated by f.
 
 <a name="Pull"></a>
-## func [Pull](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L526>)
+## func [Pull](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L527>)
 
 ```go
 func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func())
@@ -454,7 +475,7 @@ func main() {
 </details>
 
 <a name="Pull2"></a>
-## func [Pull2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L530>)
+## func [Pull2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L531>)
 
 ```go
 func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func())
@@ -463,7 +484,7 @@ func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func())
 
 
 <a name="Reduce"></a>
-## func [Reduce](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L348>)
+## func [Reduce](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L349>)
 
 ```go
 func Reduce[Sum, V any](f func(Sum, V) Sum, sum Sum, seq Seq[V]) Sum
@@ -522,7 +543,7 @@ func main() {
 </details>
 
 <a name="Reduce2"></a>
-## func [Reduce2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L360>)
+## func [Reduce2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L361>)
 
 ```go
 func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum
@@ -530,8 +551,25 @@ func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum
 
 Reduce2 combines the values in seq using f. For each pair k, v in seq, it updates sum = f\(sum, k, v\) and then returns the final sum. For example, if iterating over seq yields \(k1, v1\), \(k2, v2\), \(k3, v3\) Reduce returns f\(f\(f\(sum, k1, v1\), k2, v2\), k3, v3\).
 
+<a name="Sum"></a>
+## func [Sum](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L933>)
+
+```go
+func Sum[T constraints.Number](seq Seq[T]) T
+```
+
+Sum returns the sum of all elements in the sequence.
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+sum := xiter.Sum(seq)
+// sum is 15
+```
+
 <a name="ToMap"></a>
-## func [ToMap](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L500>)
+## func [ToMap](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L501>)
 
 ```go
 func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V)
@@ -540,7 +578,7 @@ func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V)
 
 
 <a name="ToSlice"></a>
-## func [ToSlice](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L445>)
+## func [ToSlice](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L446>)
 
 ```go
 func ToSlice[T any](seq Seq[T]) (out []T)
@@ -549,7 +587,7 @@ func ToSlice[T any](seq Seq[T]) (out []T)
 ToSlice returns the elements in seq as a slice.
 
 <a name="ToSliceN"></a>
-## func [ToSliceN](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L790>)
+## func [ToSliceN](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L791>)
 
 ```go
 func ToSliceN[T any](seq Seq[T], n int) (out []T)
@@ -558,7 +596,7 @@ func ToSliceN[T any](seq Seq[T], n int) (out []T)
 ToSliceN pull out n elements from seq.
 
 <a name="ToSliceSeq2Key"></a>
-## func [ToSliceSeq2Key](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L459>)
+## func [ToSliceSeq2Key](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L460>)
 
 ```go
 func ToSliceSeq2Key[K, V any](seq Seq2[K, V]) (out []K)
@@ -575,7 +613,7 @@ keys := ToSliceSeq2Key(seq)
 ```
 
 <a name="ToSliceSeq2Value"></a>
-## func [ToSliceSeq2Value](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L473>)
+## func [ToSliceSeq2Value](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L474>)
 
 ```go
 func ToSliceSeq2Value[K, V any](seq Seq2[K, V]) (out []V)
@@ -592,7 +630,7 @@ values := ToSliceSeq2Value(seq)
 ```
 
 <a name="Seq"></a>
-## type [Seq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L19>)
+## type [Seq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L20>)
 
 Seq is a sequence of elements provided by an iterator\-like function. We made this alias Seq to iter.Seq for providing a compatible interface in lower go versions.
 
@@ -600,8 +638,25 @@ Seq is a sequence of elements provided by an iterator\-like function. We made th
 type Seq[V any] iter.Seq[V]
 ```
 
+<a name="Chunk"></a>
+### func [Chunk](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L890>)
+
+```go
+func Chunk[T any](seq Seq[T], n int) Seq[[]T]
+```
+
+Chunk divides a sequence into chunks of size n, yielding each chunk as a slice. The last chunk may contain fewer than n elements.
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+chunkedSeq := xiter.Chunk(seq, 2)
+// xiter.ToSlice(chunkedSeq) returns [][]int{{1,2}, {3,4}, {5}}
+```
+
 <a name="Concat"></a>
-### func [Concat](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L38>)
+### func [Concat](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L39>)
 
 ```go
 func Concat[V any](seqs ...Seq[V]) Seq[V]
@@ -654,7 +709,7 @@ func main() {
 </details>
 
 <a name="Filter"></a>
-### func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L140>)
+### func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L141>)
 
 ```go
 func Filter[V any](f func(V) bool, seq Seq[V]) Seq[V]
@@ -701,7 +756,7 @@ func main() {
 </details>
 
 <a name="FromMapKeys"></a>
-### func [FromMapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L504>)
+### func [FromMapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L505>)
 
 ```go
 func FromMapKeys[K comparable, V any](m map[K]V) Seq[K]
@@ -710,7 +765,7 @@ func FromMapKeys[K comparable, V any](m map[K]V) Seq[K]
 
 
 <a name="FromMapValues"></a>
-### func [FromMapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L508>)
+### func [FromMapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L509>)
 
 ```go
 func FromMapValues[K comparable, V any](m map[K]V) Seq[V]
@@ -737,7 +792,7 @@ func FromSliceReverse[T any, Slice ~[]T](in Slice) Seq[T]
 
 
 <a name="FromSliceShuffle"></a>
-### func [FromSliceShuffle](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L870>)
+### func [FromSliceShuffle](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L871>)
 
 ```go
 func FromSliceShuffle[T any](in []T) Seq[T]
@@ -754,7 +809,7 @@ shuffledSeq := FromSliceShuffle(ToSlice(seq))
 ```
 
 <a name="Limit"></a>
-### func [Limit](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L173>)
+### func [Limit](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L174>)
 
 ```go
 func Limit[V any](seq Seq[V], n int) Seq[V]
@@ -803,7 +858,7 @@ func main() {
 </details>
 
 <a name="Map"></a>
-### func [Map](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L218>)
+### func [Map](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L219>)
 
 ```go
 func Map[In, Out any](f func(In) Out, seq Seq[In]) Seq[Out]
@@ -852,7 +907,7 @@ func main() {
 </details>
 
 <a name="Merge"></a>
-### func [Merge](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L251>)
+### func [Merge](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L252>)
 
 ```go
 func Merge[V cmp.Ordered](x, y Seq[V]) Seq[V]
@@ -894,7 +949,7 @@ func main() {
 </details>
 
 <a name="MergeFunc"></a>
-### func [MergeFunc](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L263>)
+### func [MergeFunc](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L264>)
 
 ```go
 func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V]
@@ -912,7 +967,7 @@ func Repeat[T any](seq Seq[T], count int) Seq[T]
 Repeat return a seq that repeat seq for count times.
 
 <a name="Replace"></a>
-### func [Replace](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L835>)
+### func [Replace](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L836>)
 
 ```go
 func Replace[T comparable](seq Seq[T], from, to T, n int) Seq[T]
@@ -929,7 +984,7 @@ replacedSeq := Replace(seq, 2, 99, -1) // Replace all 2s with 99
 ```
 
 <a name="ReplaceAll"></a>
-### func [ReplaceAll](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L859>)
+### func [ReplaceAll](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L860>)
 
 ```go
 func ReplaceAll[T comparable](seq Seq[T], from, to T) Seq[T]
@@ -955,7 +1010,7 @@ func Reverse[T any](seq Seq[T]) Seq[T]
 Reverse return a reversed seq.
 
 <a name="Seq2KeyToSeq"></a>
-### func [Seq2KeyToSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L480>)
+### func [Seq2KeyToSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L481>)
 
 ```go
 func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K]
@@ -963,8 +1018,26 @@ func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K]
 
 
 
+<a name="Seq2ToSeqUnion"></a>
+### func [Seq2ToSeqUnion](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L916>)
+
+```go
+func Seq2ToSeqUnion[K, V any](seq Seq2[K, V]) Seq[union.U2[K, V]]
+```
+
+Seq2ToSeqUnion converts a Seq2 sequence of key\-value pairs to a Seq sequence of union.U2 values. This allows unified processing of both keys and values from a key\-value sequence.
+
+Example:
+
+```
+seq2 := func(yield func(int, string) bool) { yield(1, "one"); yield(2, "two") }
+for v := range Seq2ToSeqUnion(seq2) {
+	// v will be union.U2[int, string] containing either 1, "one", 2, or "two"
+}
+```
+
 <a name="Seq2ValueToSeq"></a>
-### func [Seq2ValueToSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L490>)
+### func [Seq2ValueToSeq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L491>)
 
 ```go
 func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V]
@@ -973,7 +1046,7 @@ func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V]
 
 
 <a name="Skip"></a>
-### func [Skip](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L814>)
+### func [Skip](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L815>)
 
 ```go
 func Skip[T any](seq Seq[T], n int) Seq[T]
@@ -982,7 +1055,7 @@ func Skip[T any](seq Seq[T], n int) Seq[T]
 Skip return a seq that skip n elements from seq.
 
 <a name="Zip"></a>
-### func [Zip](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L384>)
+### func [Zip](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L385>)
 
 ```go
 func Zip[V1, V2 any](x Seq[V1], y Seq[V2]) Seq[Zipped[V1, V2]]
@@ -1040,7 +1113,7 @@ func main() {
 </details>
 
 <a name="Zip2"></a>
-### func [Zip2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L422>)
+### func [Zip2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L423>)
 
 ```go
 func Zip2[K1, V1, K2, V2 any](x Seq2[K1, V1], y Seq2[K2, V2]) Seq[Zipped2[K1, V1, K2, V2]]
@@ -1062,7 +1135,7 @@ func Equal2[K, V comparable](x, y Seq2[K, V]) bool {
 ```
 
 <a name="Seq2"></a>
-## type [Seq2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L23>)
+## type [Seq2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L24>)
 
 Seq2 is a sequence of key/value pair provided by an iterator\-like function. We made this alias Seq2 to iter.Seq2 for providing a compatible interface in lower go versions.
 
@@ -1071,7 +1144,7 @@ type Seq2[K, V any] iter.Seq2[K, V]
 ```
 
 <a name="Concat2"></a>
-### func [Concat2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L52>)
+### func [Concat2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L53>)
 
 ```go
 func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V]
@@ -1080,7 +1153,7 @@ func Concat2[K, V any](seqs ...Seq2[K, V]) Seq2[K, V]
 Concat2 returns an Seq2 over the concatenation of the given Seq2s. Like Concat but run with Seq2
 
 <a name="Filter2"></a>
-### func [Filter2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L153>)
+### func [Filter2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L154>)
 
 ```go
 func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V]
@@ -1089,7 +1162,7 @@ func Filter2[K, V any](f func(K, V) bool, seq Seq2[K, V]) Seq2[K, V]
 Filter2 returns an Seq over seq that only includes the key\-value pairs k, v for which f\(k, v\) is true. Like Filter but run with Seq2
 
 <a name="FromMapKeyAndValues"></a>
-### func [FromMapKeyAndValues](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L512>)
+### func [FromMapKeyAndValues](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L513>)
 
 ```go
 func FromMapKeyAndValues[K comparable, V any](m map[K]V) Seq2[K, V]
@@ -1107,7 +1180,7 @@ func FromSliceIdx[T any](in []T) Seq2[int, T]
 FromSliceIdx received a slice and returned a Seq2 for this slice, key is index.
 
 <a name="Limit2"></a>
-### func [Limit2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L192>)
+### func [Limit2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L193>)
 
 ```go
 func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V]
@@ -1116,7 +1189,7 @@ func Limit2[K, V any](seq Seq2[K, V], n int) Seq2[K, V]
 Limit2 returns a Seq over Seq2 that stops after n key\-value pairs. Like Limit but run with Seq2
 
 <a name="Map2"></a>
-### func [Map2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L230-L232>)
+### func [Map2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L231-L233>)
 
 ```go
 func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn, VIn]) Seq2[KOut, VOut]
@@ -1125,7 +1198,7 @@ func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn,
 Map2 returns a Seq2 over the results of applying f to each key\-value pair in seq. Like Map but run with Seq2
 
 <a name="Merge2"></a>
-### func [Merge2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L297>)
+### func [Merge2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L298>)
 
 ```go
 func Merge2[K cmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V]
@@ -1136,7 +1209,7 @@ Merge2 merges two sequences of key\-value pairs ordered by their keys. Pairs app
 Merge2 is equivalent to calling MergeFunc2 with cmp.Compare\[K\] as the ordering function.
 
 <a name="MergeFunc2"></a>
-### func [MergeFunc2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L309>)
+### func [MergeFunc2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L310>)
 
 ```go
 func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V]

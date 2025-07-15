@@ -496,14 +496,31 @@ func ChunkInPlace[T any, Slice ~[]T](in Slice, chunkSize int) []Slice {
 
 // Index returns the index of the first element in the slice that is equal to v.
 // If no such element is found, -1 is returned.
+// EXAMPLE:
+//
+//	xslice.Index([]int{1, 2, 3, 4, 5}, 1) 👉 0
+//	xslice.Index([]int{1, 2, 3, 4, 5}, 3) 👉 2
+//	xslice.Index([]int{1, 2, 3, 4, 5}, 666) 👉 -1
 func Index[T comparable, Slice ~[]T](in Slice, v T) int {
 	return xiter.Index(xiter.FromSlice(in), v)
 }
 
-func SumN[T constraints.Number](in ...T) T {
+// Sum returns the sum of all elements in the slice.
+//
+// EXAMPLE:
+//
+//	xslice.Sum([]int{1, 2, 3}) 👉 6
+//	xslice.Sum([]int{}) 👉 0
+func Sum[T constraints.Number, Slice ~[]T](in Slice) T {
 	return xiter.Sum(xiter.FromSlice(in))
 }
 
-func Sum[T constraints.Number, Slice ~[]T](in Slice) T {
+// SumN returns the sum of all input arguments.
+//
+// EXAMPLE:
+//
+//	xslice.SumN(1, 2, 3) 👉 6
+//	xslice.SumN() 👉 0
+func SumN[T constraints.Number](in ...T) T {
 	return xiter.Sum(xiter.FromSlice(in))
 }
