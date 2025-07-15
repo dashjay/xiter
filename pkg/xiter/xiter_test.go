@@ -330,6 +330,45 @@ func TestXIter(t *testing.T) {
 		assert.Len(t, xiter.ToSlice(xiter.Limit(xiter.FromSliceShuffle(_range(0, 10)), 5)), 5)
 		assert.Len(t, xiter.ToSlice(xiter.FromSliceShuffle(_range(0, 10))), 10)
 	})
+
+	t.Run("test chunk", func(t *testing.T) {
+		result := xiter.ToSlice(xiter.Chunk(xiter.FromSlice(_range(0, 100)), 20))
+		assert.Equal(t, _range(0, 20), result[0])
+		assert.Equal(t, _range(20, 40), result[1])
+		assert.Equal(t, _range(40, 60), result[2])
+		assert.Equal(t, _range(60, 80), result[3])
+		assert.Equal(t, _range(80, 100), result[4])
+	})
+
+	t.Run("seq2 to union2 seq", func(t *testing.T) {
+		seq2 := func(yield func(int, string) bool) {
+			if !yield(1, "one") {
+				return
+			}
+			if !yield(2, "two") {
+				return
+			}
+		}
+		u2Slice := xiter.ToSlice(xiter.Seq2ToSeqUnion(seq2))
+		assert.Equal(t, 1, u2Slice[0].T1)
+		assert.Equal(t, "one", u2Slice[0].T2)
+		u2Slice = xiter.ToSlice(xiter.Seq2ToSeqUnion(seq2))
+		assert.Equal(t, 1, u2Slice[0].T1)
+		assert.Equal(t, "one", u2Slice[0].T2)
+
+		testLimit(t, xiter.Seq2ToSeqUnion(seq2), 1)
+	})
+
+	t.Run("sum", func(t *testing.T) {
+		result := xiter.Sum(xiter.FromSlice(_range(0, 101)))
+		assert.Equal(t, 5050, result)
+	})
+	t.Run("index", func(t *testing.T) {
+		result := xiter.Index(xiter.FromSlice(_range(0, 101)), 50)
+		assert.Equal(t, 50, result)
+		result = xiter.Index(xiter.FromSlice(_range(0, 101)), 66666)
+		assert.Equal(t, -1, result)
+	})
 }
 
 func TestXIter61898(t *testing.T) {
@@ -760,6 +799,7 @@ func TestXIter61898(t *testing.T) {
 			}
 		})
 	})
+
 }
 
 func ExampleConcat() {

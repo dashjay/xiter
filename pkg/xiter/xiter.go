@@ -6,12 +6,13 @@ package xiter
 import (
 	"iter"
 	"maps"
-	"math/rand/v2"
+	"math/rand"
 	"strings"
 
 	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
+	"github.com/dashjay/xiter/pkg/union"
 )
 
 // Seq is a sequence of elements provided by an iterator-like function.
@@ -875,5 +876,90 @@ func FromSliceShuffle[T any](in []T) Seq[T] {
 				break
 			}
 		}
+	}
+}
+
+// Chunk divides a sequence into chunks of size n, yielding each chunk as a slice.
+// The last chunk may contain fewer than n elements.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+//	chunkedSeq := xiter.Chunk(seq, 2)
+//	// xiter.ToSlice(chunkedSeq) returns [][]int{{1,2}, {3,4}, {5}}
+func Chunk[T any](seq Seq[T], n int) Seq[[]T] {
+	return func(yield func([]T) bool) {
+		tmp := make([]T, 0, n)
+		for v := range seq {
+			tmp = append(tmp, v)
+			if len(tmp) == n {
+				if !yield(tmp) {
+					break
+				}
+				tmp = make([]T, 0, n)
+			}
+		}
+		if len(tmp) < n {
+			yield(tmp)
+		}
+	}
+}
+
+// Seq2ToSeqUnion converts a Seq2 sequence of key-value pairs to a Seq sequence of union.U2 values.
+// This allows unified processing of both keys and values from a key-value sequence.
+//
+// Example:
+//	seq2 := func(yield func(int, string) bool) { yield(1, "one"); yield(2, "two") }
+//	for v := range Seq2ToSeqUnion(seq2) {
+//		// v will be union.U2[int, string] containing either 1, "one", 2, or "two"
+//	}
+func Seq2ToSeqUnion[K, V any](seq Seq2[K, V]) Seq[union.U2[K, V]] {
+	return func(yield func(union.U2[K, V]) bool) {
+		for k, v := range seq {
+			if !yield(union.U2[K, V]{T1: k, T2: v}) {
+				break
+			}
+		}
+	}
+}
+
+// Sum returns the sum of all elements in the sequence.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+//	sum := xiter.Sum(seq)
+//	// sum is 15
+func Sum[T constraints.Number](seq Seq[T]) T {
+	var sum T
+	seq(func(t T) bool {
+		sum += t
+		return true
+	})
+	return sum
+}
+
+// Index returns the index of the first element in the sequence that is equal to v.
+// If no such element is found, -1 is returned.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+//	idx := xiter.Index(seq, 3)
+//	// idx is 2
+func Index[T comparable](seq Seq[T], v T) int {
+	found := false
+	idx := 0
+	for t := range seq {
+		if t == v {
+			found = true
+			break
+		}
+		idx++
+	}
+	if found {
+		return idx
+	} else {
+		return -1
 	}
 }

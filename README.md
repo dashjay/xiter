@@ -1,6 +1,9 @@
 # xiter
 A Generic Library for Go with the Power of Iterators
 
+[![codecov](https://codecov.io/gh/dashjay/xiter/graph/badge.svg?token=GTTJNP1MHT)](https://codecov.io/gh/dashjay/xiter)
+![ci.yml](https://github.com/dashjay/xiter/actions/workflows/ci.yml/badge.svg?branch=main)
+
 ## Introduction
 
 TL;DR:
@@ -32,7 +35,15 @@ This package considers Go versions before 1.23, starting from Go 1.18+
 
 ## Docs
 
-[Docs](./doc/doc.md)
+[Full Docs](./doc/doc.md)
+
+Docs For Packages:
+
+- [cmp](./pkg/cmp/README.md)
+- [optional](./pkg/optional/README.md)
+- [union](./pkg/union/README.md)
+- [xiter](./pkg/xiter/README.md)
+- [xslice](./pkg/xslice/README.md)
 
 ## Contribution
 
