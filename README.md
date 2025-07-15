@@ -1,6 +1,9 @@
 # xiter
 A Generic Library for Go with the Power of Iterators
 
+[![codecov](https://codecov.io/gh/dashjay/xiter/graph/badge.svg?token=GTTJNP1MHT)](https://codecov.io/gh/dashjay/xiter)
+![ci.yml](https://github.com/dashjay/xiter/actions/workflows/ci.yml/badge.svg?branch=main)
+
 ## Introduction
 
 TL;DR:
