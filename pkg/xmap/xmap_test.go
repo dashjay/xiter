@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"testing"
-	
+
 	"github.com/dashjay/xiter/pkg/union"
 	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/dashjay/xiter/pkg/xmap"
@@ -69,6 +69,13 @@ func TestMap(t *testing.T) {
 		assert.False(t, xmap.EqualFunc(aMap, bMap, func(a string, b string) bool {
 			return a == b
 		}))
+	})
 
+	t.Run("coalesce maps", func(t *testing.T) {
+		var maps []map[int]string
+		for i := 0; i < 100; i += 10 {
+			maps = append(maps, _map(i, i+10))
+		}
+		assert.True(t, xmap.Equal(xmap.CoalesceMaps(maps...), _map(0, 100)))
 	})
 }
