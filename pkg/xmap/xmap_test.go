@@ -2,12 +2,13 @@ package xmap_test
 
 import (
 	"fmt"
+	"sort"
+	"testing"
+	
 	"github.com/dashjay/xiter/pkg/union"
 	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/dashjay/xiter/pkg/xmap"
 	"github.com/stretchr/testify/assert"
-	"sort"
-	"testing"
 )
 
 func _map(start, end int) (m map[int]string) {
