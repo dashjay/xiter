@@ -44,6 +44,7 @@ Docs For Packages:
 - [union](./pkg/union/README.md)
 - [xiter](./pkg/xiter/README.md)
 - [xslice](./pkg/xslice/README.md)
+- [xmap](./pkg/xmap/README.md)
 
 ## Contribution
 

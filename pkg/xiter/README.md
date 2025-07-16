@@ -52,6 +52,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func Chunk\[T any\]\(seq Seq\[T\], n int\) Seq\[\[\]T\]](<#Chunk>)
   - [func Concat\[V any\]\(seqs ...Seq\[V\]\) Seq\[V\]](<#Concat>)
   - [func Filter\[V any\]\(f func\(V\) bool, seq Seq\[V\]\) Seq\[V\]](<#Filter>)
+  - [func FromChan\[T any\]\(in \<\-chan T\) Seq\[T\]](<#FromChan>)
   - [func FromMapKeys\[K comparable, V any\]\(m map\[K\]V\) Seq\[K\]](<#FromMapKeys>)
   - [func FromMapValues\[K comparable, V any\]\(m map\[K\]V\) Seq\[V\]](<#FromMapValues>)
   - [func FromSlice\[T any\]\(in \[\]T\) Seq\[T\]](<#FromSlice>)
@@ -754,6 +755,29 @@ func main() {
 
 </p>
 </details>
+
+<a name="FromChan"></a>
+### func [FromChan](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L105>)
+
+```go
+func FromChan[T any](in <-chan T) Seq[T]
+```
+
+FromChan creates a Seq from a Go channel. It yields elements from the channel until the channel is closed or the consumer stops iterating.
+
+Example:
+
+```
+ch := make(chan int, 3)
+ch <- 1
+ch <- 2
+close(ch)
+
+seq := FromChan(ch)
+
+// Iterate over the sequence
+_ = ToSlice(seq) // Returns []int{1, 2}
+```
 
 <a name="FromMapKeys"></a>
 ### func [FromMapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L505>)

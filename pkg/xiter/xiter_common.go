@@ -87,3 +87,27 @@ func Repeat[T any](seq Seq[T], count int) Seq[T] {
 	}
 	return Concat(seqs...)
 }
+
+// FromChan creates a Seq from a Go channel. It yields elements from the channel
+// until the channel is closed or the consumer stops iterating.
+//
+// Example:
+//
+//	ch := make(chan int, 3)
+//	ch <- 1
+//	ch <- 2
+//	close(ch)
+//
+//	seq := FromChan(ch)
+//
+//	// Iterate over the sequence
+//	_ = ToSlice(seq) // Returns []int{1, 2}
+func FromChan[T any](in <-chan T) Seq[T] {
+	return func(yield func(T) bool) {
+		for elem := range in {
+			if !yield(elem) {
+				return
+			}
+		}
+	}
+}
