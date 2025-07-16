@@ -62,4 +62,14 @@ func TestXIterCommon(t *testing.T) {
 		assert.Len(t, res, 10)
 		assert.Equal(t, _range(0, 10), res)
 	})
+
+	t.Run("from chan limit", func(t *testing.T) {
+		ch := make(chan int, 10)
+		for i := 0; i < 10; i++ {
+			ch <- i
+		}
+		close(ch)
+		seq := xiter.FromChan(ch)
+		testLimit(t, seq, 1)
+	})
 }

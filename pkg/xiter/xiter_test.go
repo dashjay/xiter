@@ -332,7 +332,9 @@ func TestXIter(t *testing.T) {
 	})
 
 	t.Run("test chunk", func(t *testing.T) {
-		result := xiter.ToSlice(xiter.Chunk(xiter.FromSlice(_range(0, 100)), 20))
+		chunkedSeq := xiter.Chunk(xiter.FromSlice(_range(0, 100)), 20)
+		testLimit(t, chunkedSeq, 1)
+		result := xiter.ToSlice(chunkedSeq)
 		assert.Equal(t, _range(0, 20), result[0])
 		assert.Equal(t, _range(20, 40), result[1])
 		assert.Equal(t, _range(40, 60), result[2])
