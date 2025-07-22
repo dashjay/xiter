@@ -371,6 +371,11 @@ func TestXIter(t *testing.T) {
 		result = xiter.Index(xiter.FromSlice(_range(0, 101)), 66666)
 		assert.Equal(t, -1, result)
 	})
+
+	t.Run("uniq", func(t *testing.T) {
+		seq := xiter.Uniq(xiter.FromSlice([]int{1, 2, 3, 2, 4}))
+		assert.Equal(t, []int{1, 2, 3, 4}, xiter.ToSlice(seq))
+	})
 }
 
 func TestXIter61898(t *testing.T) {

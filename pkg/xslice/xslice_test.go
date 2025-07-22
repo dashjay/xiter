@@ -288,4 +288,7 @@ func TestSlices(t *testing.T) {
 			return r
 		}))
 	})
+	t.Run("uniq", func(t *testing.T) {
+		assert.Equal(t, []int{1, 2, 3, 4}, xslice.Uniq([]int{1, 2, 3, 2, 4}))
+	})
 }

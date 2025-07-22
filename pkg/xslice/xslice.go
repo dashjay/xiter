@@ -537,3 +537,12 @@ func SumN[T constraints.Number](in ...T) T {
 func SumBy[T any, R constraints.Number, Slice ~[]T](in Slice, f func(T) R) R {
 	return xiter.Sum(xiter.Map(f, xiter.FromSlice(in)))
 }
+
+// Uniq returns a new slice with the duplicate elements removed.
+//
+// EXAMPLE:
+//
+//	xslice.Uniq([]int{1, 2, 3, 2, 4}) 👉 [1, 2, 3, 4]
+func Uniq[T comparable, Slice ~[]T](in Slice) Slice {
+	return xiter.ToSlice(xiter.Uniq(xiter.FromSlice(in)))
+}

@@ -963,3 +963,24 @@ func Index[T comparable](seq Seq[T], v T) int {
 		return -1
 	}
 }
+
+// Uniq return a seq that remove duplicate elements
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3, 2, 4})
+//	uniqSeq := xiter.Uniq(seq)
+//	// uniqSeq will yield: 1, 2, 3, 4
+func Uniq[T comparable](seq Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		m := make(map[T]struct{})
+		for v := range seq {
+			if _, ok := m[v]; !ok {
+				m[v] = struct{}{}
+				if !yield(v) {
+					break
+				}
+			}
+		}
+	}
+}

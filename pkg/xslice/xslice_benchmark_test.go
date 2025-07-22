@@ -1,8 +1,10 @@
 package xslice_test
 
 import (
-	"github.com/samber/lo"
+	"bytes"
 	"testing"
+
+	"github.com/samber/lo"
 
 	"github.com/dashjay/xiter/pkg/xslice"
 )
@@ -93,6 +95,21 @@ func BenchmarkSlice(b *testing.B) {
 		b.Run("lo", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_ = lo.Sum(seq)
+			}
+		})
+	})
+
+	b.Run("benchmark uniq", func(b *testing.B) {
+		bytes := bytes.Repeat([]byte("b"), 1024)
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = xslice.Uniq(bytes)
+			}
+		})
+
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = lo.Uniq(bytes)
 			}
 		})
 	})
