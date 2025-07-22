@@ -113,6 +113,46 @@ func BenchmarkSlice(b *testing.B) {
 			}
 		})
 	})
+
+	b.Run("benchmark group by", func(b *testing.B) {
+		arr := _range(0, 1000)
+		fn := func(i int) string {
+			if i%2 == 0 {
+				return "even"
+			}
+			return "odd"
+		}
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.GroupBy(arr, fn)
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.GroupBy(arr, fn)
+			}
+		})
+	})
+
+	b.Run("benchmark group by map", func(b *testing.B) {
+		arr := _range(0, 1000)
+		fn := func(i int) (string, int) {
+			if i%2 == 0 {
+				return "even", i * i
+			}
+			return "odd", i * i
+		}
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.GroupByMap(arr, fn)
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.GroupByMap(arr, fn)
+			}
+		})
+	})
 }
 
 func BenchmarkChunk(b *testing.B) {
