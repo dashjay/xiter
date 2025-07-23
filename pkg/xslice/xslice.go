@@ -524,7 +524,6 @@ func SumN[T constraints.Number](in ...T) T {
 	return xiter.Sum(xiter.FromSlice(in))
 }
 
-//
 // SumBy returns the sum of all elements in the slice after applying the given function f to each element.
 //
 // EXAMPLE:
@@ -571,4 +570,13 @@ func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, 
 		sum[k] = append(sum[k], v)
 		return sum
 	}, map[K][]V{}, seq2)
+}
+
+// Filter returns a new slice with the elements that satisfy the given function f.
+//
+// EXAMPLE:
+//
+//	xslice.Filter([]int{1, 2, 3, 2, 4}, func(x int) bool { return x%2 == 0 }) 👉 [2 4]
+func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice {
+	return xiter.ToSlice(xiter.Filter(f, xiter.FromSlice(in)))
 }

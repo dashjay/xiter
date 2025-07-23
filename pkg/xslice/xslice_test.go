@@ -321,4 +321,7 @@ func TestSlices(t *testing.T) {
 		assert.Contains(t, groupedBy["odd"], 3)
 		assert.Contains(t, groupedBy["odd"], 7)
 	})
+	t.Run("filter", func(t *testing.T) {
+		assert.Equal(t, []int{2, 4}, xslice.Filter([]int{1, 2, 3, 4}, func(x int) bool { return x%2 == 0 }))
+	})
 }

@@ -153,6 +153,20 @@ func BenchmarkSlice(b *testing.B) {
 			}
 		})
 	})
+
+	b.Run("benchmark filter", func(b *testing.B) {
+		arr := _range(0, 1000)
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.Filter(arr, func(x int) bool { return x%2 == 0 })
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.Filter(arr, func(x int, idx int) bool { return x%2 == 0 })
+			}
+		})
+	})
 }
 
 func BenchmarkChunk(b *testing.B) {

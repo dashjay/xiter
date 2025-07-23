@@ -47,6 +47,25 @@ jobs:
 
       - name: Verify Golang CI Lint
         run: ./hack/verify-golangci-lint.sh
+  verify_doc:
+    name: Verify docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.10'
+      - name: Install gomarkdoc
+        run: go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@v1.1.0
+
+      - name: Update Docs
+        run: ./hack/update-doc.sh
+
+      - name: Verify Doc Updated
+        run: ./hack/verify-workspace-clean.sh
 
   test:
     runs-on: ubuntu-latest
