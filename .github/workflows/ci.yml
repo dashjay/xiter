@@ -65,7 +65,7 @@ jobs:
       - name: Update Docs
         run: ./hack/update-doc.sh
 
-      - name: Update Docs
+      - name: Verify Doc Updated
         run: ./hack/verify-workspace-clean.sh
 
   test:
