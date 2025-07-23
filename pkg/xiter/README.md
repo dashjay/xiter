@@ -70,6 +70,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func Seq2ToSeqUnion\[K, V any\]\(seq Seq2\[K, V\]\) Seq\[union.U2\[K, V\]\]](<#Seq2ToSeqUnion>)
   - [func Seq2ValueToSeq\[K, V any\]\(in Seq2\[K, V\]\) Seq\[V\]](<#Seq2ValueToSeq>)
   - [func Skip\[T any\]\(seq Seq\[T\], n int\) Seq\[T\]](<#Skip>)
+  - [func Uniq\[T comparable\]\(seq Seq\[T\]\) Seq\[T\]](<#Uniq>)
   - [func Zip\[V1, V2 any\]\(x Seq\[V1\], y Seq\[V2\]\) Seq\[Zipped\[V1, V2\]\]](<#Zip>)
   - [func Zip2\[K1, V1, K2, V2 any\]\(x Seq2\[K1, V1\], y Seq2\[K2, V2\]\) Seq\[Zipped2\[K1, V1, K2, V2\]\]](<#Zip2>)
 - [type Seq2](<#Seq2>)
@@ -79,6 +80,8 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func FromSliceIdx\[T any\]\(in \[\]T\) Seq2\[int, T\]](<#FromSliceIdx>)
   - [func Limit2\[K, V any\]\(seq Seq2\[K, V\], n int\) Seq2\[K, V\]](<#Limit2>)
   - [func Map2\[KIn, VIn, KOut, VOut any\]\(f func\(KIn, VIn\) \(KOut, VOut\), seq Seq2\[KIn, VIn\]\) Seq2\[KOut, VOut\]](<#Map2>)
+  - [func MapToSeq2\[T any, K comparable\]\(in Seq\[T\], mapFn func\(ele T\) K\) Seq2\[K, T\]](<#MapToSeq2>)
+  - [func MapToSeq2Value\[T any, K comparable, V any\]\(in Seq\[T\], mapFn func\(ele T\) \(K, V\)\) Seq2\[K, V\]](<#MapToSeq2Value>)
   - [func Merge2\[K cmp.Ordered, V any\]\(x, y Seq2\[K, V\]\) Seq2\[K, V\]](<#Merge2>)
   - [func MergeFunc2\[K, V any\]\(x, y Seq2\[K, V\], f func\(K, K\) int\) Seq2\[K, V\]](<#MergeFunc2>)
 - [type Zipped](<#Zipped>)
@@ -363,7 +366,7 @@ func HeadO[T any](seq Seq[T]) optional.O[T]
 HeadO return the first element from seq.
 
 <a name="Index"></a>
-## func [Index](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L950>)
+## func [Index](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L951>)
 
 ```go
 func Index[T comparable](seq Seq[T], v T) int
@@ -553,7 +556,7 @@ func Reduce2[Sum, K, V any](f func(Sum, K, V) Sum, sum Sum, seq Seq2[K, V]) Sum
 Reduce2 combines the values in seq using f. For each pair k, v in seq, it updates sum = f\(sum, k, v\) and then returns the final sum. For example, if iterating over seq yields \(k1, v1\), \(k2, v2\), \(k3, v3\) Reduce returns f\(f\(f\(sum, k1, v1\), k2, v2\), k3, v3\).
 
 <a name="Sum"></a>
-## func [Sum](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L933>)
+## func [Sum](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L934>)
 
 ```go
 func Sum[T constraints.Number](seq Seq[T]) T
@@ -1043,7 +1046,7 @@ func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K]
 
 
 <a name="Seq2ToSeqUnion"></a>
-### func [Seq2ToSeqUnion](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L916>)
+### func [Seq2ToSeqUnion](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L917>)
 
 ```go
 func Seq2ToSeqUnion[K, V any](seq Seq2[K, V]) Seq[union.U2[K, V]]
@@ -1077,6 +1080,23 @@ func Skip[T any](seq Seq[T], n int) Seq[T]
 ```
 
 Skip return a seq that skip n elements from seq.
+
+<a name="Uniq"></a>
+### func [Uniq](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L975>)
+
+```go
+func Uniq[T comparable](seq Seq[T]) Seq[T]
+```
+
+Uniq return a seq that remove duplicate elements
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 2, 4})
+uniqSeq := xiter.Uniq(seq)
+// uniqSeq will yield: 1, 2, 3, 4
+```
 
 <a name="Zip"></a>
 ### func [Zip](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L385>)
@@ -1220,6 +1240,47 @@ func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn,
 ```
 
 Map2 returns a Seq2 over the results of applying f to each key\-value pair in seq. Like Map but run with Seq2
+
+<a name="MapToSeq2"></a>
+### func [MapToSeq2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1001>)
+
+```go
+func MapToSeq2[T any, K comparable](in Seq[T], mapFn func(ele T) K) Seq2[K, T]
+```
+
+MapToSeq2 transforms a Seq\[T\] into a Seq2\[K, T\] by applying a mapping function. The mapFn extracts a key K from each element T in the input sequence.
+
+Example:
+
+```
+seq := FromSlice([]string{"apple", "banana", "cherry"})
+// Map each string to its length as the key, and the string itself as the value
+lenMap := MapToSeq2(seq, func(s string) int { return len(s) })
+// ToMap can be used to convert Seq2 to a map
+fmt.Println(ToMap(lenMap))
+// output:
+// map[5:apple 6:banana 6:cherry] (order may vary, and duplicate keys will overwrite values)
+```
+
+<a name="MapToSeq2Value"></a>
+### func [MapToSeq2Value](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1023>)
+
+```go
+func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(ele T) (K, V)) Seq2[K, V]
+```
+
+MapToSeq2Value transforms a Seq\[T\] into a Seq2\[K, V\] by applying a mapping function. The mapFn extracts both a key K and a value V from each element T in the input sequence.
+
+Example:
+
+```
+seq := FromSlice([]int{1, 2, 3})
+// Map each integer to its square as the key, and its cube as the value
+transformed := MapToSeq2Value(seq, func(i int) (int, int) { return i * i, i * i * i })
+fmt.Println(ToMap(transformed))
+// output:
+// map[1:1 4:8 9:27]
+```
 
 <a name="Merge2"></a>
 ### func [Merge2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L298>)
