@@ -328,4 +328,12 @@ func TestSlices(t *testing.T) {
 	t.Run("compact", func(t *testing.T) {
 		assert.Equal(t, []int{1, 2, 3, 4}, xslice.Compact([]int{0, 1, 2, 3, 4}))
 	})
+
+	t.Run("first", func(t *testing.T) {
+		assert.Equal(t, 1, xslice.FirstO([]int{1, 2, 3}).Must())
+	})
+
+	t.Run("last", func(t *testing.T) {
+		assert.Equal(t, 3, xslice.LastO([]int{1, 2, 3}).Must())
+	})
 }

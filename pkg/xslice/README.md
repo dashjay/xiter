@@ -27,6 +27,8 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func Filter\[T any, Slice \~\[\]T\]\(in Slice, f func\(T\) bool\) Slice](<#Filter>)
 - [func Find\[T any\]\(in \[\]T, f func\(T\) bool\) \(val T, found bool\)](<#Find>)
 - [func FindO\[T any\]\(in \[\]T, f func\(T\) bool\) optional.O\[T\]](<#FindO>)
+- [func First\[T any, Slice \~\[\]T\]\(in Slice\) \(T, bool\)](<#First>)
+- [func FirstO\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#FirstO>)
 - [func ForEach\[T any\]\(in \[\]T, f func\(T\) bool\)](<#ForEach>)
 - [func ForEachIdx\[T any\]\(in \[\]T, f func\(idx int, v T\) bool\)](<#ForEachIdx>)
 - [func GroupBy\[T any, K comparable, Slice \~\[\]T\]\(in Slice, f func\(T\) K\) map\[K\]Slice](<#GroupBy>)
@@ -35,6 +37,8 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func HeadO\[T any\]\(in \[\]T\) optional.O\[T\]](<#HeadO>)
 - [func Index\[T comparable, Slice \~\[\]T\]\(in Slice, v T\) int](<#Index>)
 - [func Join\[T \~string\]\(in \[\]T, sep T\) T](<#Join>)
+- [func Last\[T any, Slice \~\[\]T\]\(in Slice\) \(T, bool\)](<#Last>)
+- [func LastO\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#LastO>)
 - [func Map\[T any, U any\]\(in \[\]T, f func\(T\) U\) \[\]U](<#Map>)
 - [func Max\[T constraints.Ordered\]\(in \[\]T\) optional.O\[T\]](<#Max>)
 - [func MaxBy\[T constraints.Ordered\]\(in \[\]T, f func\(T, T\) bool\) optional.O\[T\]](<#MaxBy>)
@@ -370,6 +374,34 @@ xslice.FindO(_range(0, 10), func(x int) bool { return x == 1 }).Must() 👉 1
 xslice.FindO(_range(0, 10), func(x int) bool { return x == -1 }).Ok() 👉 false
 ```
 
+<a name="First"></a>
+## func [First](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L595>)
+
+```go
+func First[T any, Slice ~[]T](in Slice) (T, bool)
+```
+
+First returns the first element in the slice. If the slice is empty, the zero value of T is returned. EXAMPLE:
+
+```
+xslice.First([]int{1, 2, 3}) 👉 1
+xslice.First([]int{}) 👉 0
+```
+
+<a name="FirstO"></a>
+## func [FirstO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L605>)
+
+```go
+func FirstO[T any, Slice ~[]T](in Slice) optional.O[T]
+```
+
+FirstO returns the first element in the slice as an optional.O\[T\]. If the slice is empty, the zero value of T is returned. EXAMPLE:
+
+```
+xslice.FirstO([]int{1, 2, 3}) 👉 1
+xslice.FirstO([]int{}) 👉 0
+```
+
 <a name="ForEach"></a>
 ## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L157>)
 
@@ -505,6 +537,34 @@ EXAMPLE:
 ```
 xslice.Join([]string{"1", "2", "3"}, ".") 👉 "1.2.3"
 xslice.Join([]string{}, ".") 👉 ""
+```
+
+<a name="Last"></a>
+## func [Last](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L615>)
+
+```go
+func Last[T any, Slice ~[]T](in Slice) (T, bool)
+```
+
+Last returns the last element in the slice. If the slice is empty, the zero value of T is returned. EXAMPLE:
+
+```
+xslice.Last([]int{1, 2, 3}) 👉 3
+xslice.Last([]int{}) 👉 0
+```
+
+<a name="LastO"></a>
+## func [LastO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L625>)
+
+```go
+func LastO[T any, Slice ~[]T](in Slice) optional.O[T]
+```
+
+LastO returns the last element in the slice as an optional.O\[T\]. If the slice is empty, the zero value of T is returned. EXAMPLE:
+
+```
+xslice.LastO([]int{1, 2, 3}) 👉 3
+xslice.LastO([]int{}) 👉 0
 ```
 
 <a name="Map"></a>

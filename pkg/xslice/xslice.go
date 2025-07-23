@@ -585,3 +585,43 @@ func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice {
 func Compact[T comparable, Slice ~[]T](in Slice) Slice {
 	return xiter.ToSlice(xiter.Compact(xiter.FromSlice(in)))
 }
+
+// First returns the first element in the slice.
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.First([]int{1, 2, 3}) 👉 1
+//	xslice.First([]int{}) 👉 0
+func First[T any, Slice ~[]T](in Slice) (T, bool) {
+	return xiter.First(xiter.FromSlice(in))
+}
+
+// FirstO returns the first element in the slice as an optional.O[T].
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.FirstO([]int{1, 2, 3}) 👉 1
+//	xslice.FirstO([]int{}) 👉 0
+func FirstO[T any, Slice ~[]T](in Slice) optional.O[T] {
+	return optional.FromValue2(First(in))
+}
+
+// Last returns the last element in the slice.
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.Last([]int{1, 2, 3}) 👉 3
+//	xslice.Last([]int{}) 👉 0
+func Last[T any, Slice ~[]T](in Slice) (T, bool) {
+	return xiter.Last(xiter.FromSlice(in))
+}
+
+// LastO returns the last element in the slice as an optional.O[T].
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.LastO([]int{1, 2, 3}) 👉 3
+//	xslice.LastO([]int{}) 👉 0
+func LastO[T any, Slice ~[]T](in Slice) optional.O[T] {
+	return optional.FromValue2(Last(in))
+}

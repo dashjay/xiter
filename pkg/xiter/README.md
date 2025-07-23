@@ -335,22 +335,34 @@ func FindO[T any](seq Seq[T], f func(T) bool) optional.O[T]
 FindO return the first element from seq that satisfies the condition evaluated by f.
 
 <a name="First"></a>
-## func [First](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1036>)
+## func [First](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1043>)
 
 ```go
 func First[T any](in Seq[T]) (T, bool)
 ```
 
+First returns the first element in the sequence. If the sequence is empty, the zero value of T is returned. Example:
 
+```
+seq := FromSlice([]int{1, 2, 3})
+first, ok := First(seq)
+// first is 1, ok is true
+```
 
 <a name="FirstO"></a>
-## func [FirstO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1047>)
+## func [FirstO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1061>)
 
 ```go
 func FirstO[T any](in Seq[T]) optional.O[T]
 ```
 
+FirstO returns the first element in the sequence as an optional.O\[T\]. If the sequence is empty, the zero value of T is returned. Example:
 
+```
+seq := FromSlice([]int{1, 2, 3})
+first, ok := FirstO(seq)
+// first is 1, ok is true
+```
 
 <a name="ForEach"></a>
 ## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L674>)
@@ -415,22 +427,34 @@ func Join[T ~string](seq Seq[T], sep T) T
 Join return the concatenation of all elements in seq with sep.
 
 <a name="Last"></a>
-## func [Last](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1051>)
+## func [Last](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1072>)
 
 ```go
 func Last[T any](in Seq[T]) (T, bool)
 ```
 
+Last returns the last element in the sequence. If the sequence is empty, the zero value of T is returned. Example:
 
+```
+seq := FromSlice([]int{1, 2, 3})
+last, ok := Last(seq)
+// last is 3, ok is true
+```
 
 <a name="LastO"></a>
-## func [LastO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1061>)
+## func [LastO](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1089>)
 
 ```go
 func LastO[T any](in Seq[T]) optional.O[T]
 ```
 
+LastO returns the last element in the sequence as an optional.O\[T\]. If the sequence is empty, the zero value of T is returned. Example:
 
+```
+seq := FromSlice([]int{1, 2, 3})
+last, ok := LastO(seq)
+// last is 3, ok is true
+```
 
 <a name="Max"></a>
 ## func [Max](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L721>)
@@ -701,7 +725,7 @@ chunkedSeq := xiter.Chunk(seq, 2)
 ```
 
 <a name="Compact"></a>
-### func [Compact](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1070>)
+### func [Compact](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L1098>)
 
 ```go
 func Compact[T comparable](in Seq[T]) Seq[T]

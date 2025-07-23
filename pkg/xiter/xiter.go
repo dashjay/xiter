@@ -1033,6 +1033,13 @@ func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(ele T) (K,
 	}
 }
 
+// First returns the first element in the sequence.
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	first, ok := First(seq)
+//	// first is 1, ok is true
 func First[T any](in Seq[T]) (T, bool) {
 	var v T
 	var ok = false
@@ -1044,10 +1051,24 @@ func First[T any](in Seq[T]) (T, bool) {
 	return v, ok
 }
 
+// FirstO returns the first element in the sequence as an optional.O[T].
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	first, ok := FirstO(seq)
+//	// first is 1, ok is true
 func FirstO[T any](in Seq[T]) optional.O[T] {
 	return optional.FromValue2(First(in))
 }
 
+// Last returns the last element in the sequence.
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	last, ok := Last(seq)
+//	// last is 3, ok is true
 func Last[T any](in Seq[T]) (T, bool) {
 	var v T
 	var ok = false
@@ -1058,6 +1079,13 @@ func Last[T any](in Seq[T]) (T, bool) {
 	return v, ok
 }
 
+// LastO returns the last element in the sequence as an optional.O[T].
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	last, ok := LastO(seq)
+//	// last is 3, ok is true
 func LastO[T any](in Seq[T]) optional.O[T] {
 	return optional.FromValue2(Last(in))
 }
