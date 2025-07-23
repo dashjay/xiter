@@ -576,3 +576,12 @@ func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, 
 func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice {
 	return xiter.ToSlice(xiter.Filter(f, xiter.FromSlice(in)))
 }
+
+// Compact returns a new slice with the zero elements removed.
+//
+// EXAMPLE:
+//
+//	xslice.Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
+func Compact[T comparable, Slice ~[]T](in Slice) Slice {
+	return xiter.ToSlice(xiter.Compact(xiter.FromSlice(in)))
+}

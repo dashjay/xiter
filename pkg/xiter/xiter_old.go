@@ -11,6 +11,7 @@ import (
 
 	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
+	"github.com/dashjay/xiter/pkg/internal/utils"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
 )
@@ -928,6 +929,47 @@ func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(T) (K, V))
 		in(func(ele T) bool {
 			k, v := mapFn(ele)
 			return yield(k, v)
+		})
+	}
+}
+
+func First[T any](in Seq[T]) (T, bool) {
+	var v T
+	var ok = false
+	in(func(t T) bool {
+		v = t
+		ok = true
+		return false
+	})
+	return v, ok
+}
+
+func FirstO[T any](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(First(in))
+}
+
+func Last[T any](in Seq[T]) (T, bool) {
+	var v T
+	var ok = false
+	in(func(t T) bool {
+		v = t
+		ok = true
+		return true
+	})
+	return v, ok
+}
+
+func LastO[T any](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(Last(in))
+}
+
+func Compact[T comparable](in Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		in(func(t T) bool {
+			if utils.IsZero(t) {
+				return true
+			}
+			return yield(t)
 		})
 	}
 }

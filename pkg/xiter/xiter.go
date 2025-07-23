@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/dashjay/xiter/pkg/internal/utils"
+
 	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
@@ -1025,6 +1027,53 @@ func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(ele T) (K,
 		for ele := range in {
 			k, v := mapFn(ele)
 			if !yield(k, v) {
+				break
+			}
+		}
+	}
+}
+
+func First[T any](in Seq[T]) (T, bool) {
+	var v T
+	var ok = false
+	for t := range in {
+		v = t
+		ok = true
+		break
+	}
+	return v, ok
+}
+
+func FirstO[T any](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(First(in))
+}
+
+func Last[T any](in Seq[T]) (T, bool) {
+	var v T
+	var ok = false
+	for t := range in {
+		v = t
+		ok = true
+	}
+	return v, ok
+}
+
+func LastO[T any](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(Last(in))
+}
+
+// Compact returns a new sequence with the zero elements removed.
+//
+// EXAMPLE:
+//
+//	Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
+func Compact[T comparable](in Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		for t := range in {
+			if utils.IsZero(t) {
+				continue
+			}
+			if !yield(t) {
 				break
 			}
 		}

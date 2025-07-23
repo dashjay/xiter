@@ -391,6 +391,33 @@ func TestXIter(t *testing.T) {
 		testLimit2(t, seq2, 1)
 		assert.Equal(t, 9, xiter.ToMap(seq2)["3"])
 	})
+
+	t.Run("first", func(t *testing.T) {
+		val, ok := xiter.First(xiter.FromSlice([]int{0, 1, 2, 3, 4}))
+		assert.True(t, ok)
+		assert.Equal(t, 0, val)
+		assert.Equal(t, 0, xiter.FirstO(xiter.FromSlice([]int{0, 1, 2, 3, 4})).Must())
+
+		val, ok = xiter.First(xiter.FromSlice([]int{}))
+		assert.False(t, ok)
+		assert.False(t, xiter.FirstO(xiter.FromSlice([]int{})).Ok())
+	})
+
+	t.Run("last", func(t *testing.T) {
+		val, ok := xiter.Last(xiter.FromSlice([]int{0, 1, 2, 3, 4}))
+		assert.True(t, ok)
+		assert.Equal(t, 4, val)
+		assert.Equal(t, 4, xiter.LastO(xiter.FromSlice([]int{0, 1, 2, 3, 4})).Must())
+
+		val, ok = xiter.Last(xiter.FromSlice([]int{}))
+		assert.False(t, ok)
+		assert.False(t, xiter.LastO(xiter.FromSlice([]int{})).Ok())
+	})
+
+	t.Run("compact", func(t *testing.T) {
+		seq := xiter.Compact(xiter.FromSlice([]int{0, 1, 2, 3, 4}))
+		assert.Equal(t, []int{1, 2, 3, 4}, xiter.ToSlice(seq))
+	})
 }
 
 func TestXIter61898(t *testing.T) {
