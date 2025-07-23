@@ -68,6 +68,8 @@ jobs:
       - name: Verify Doc Updated
         run: ./hack/verify-workspace-clean.sh
 
+      - name: Verify Debug
+        run: git status && git diff --exit-code
   test:
     runs-on: ubuntu-latest
     strategy:
