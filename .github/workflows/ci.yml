@@ -64,9 +64,6 @@ jobs:
       - name: Update Docs
         run: ./hack/update-doc.sh
 
-      - name: Verify Debug
-        run: git status && git diff --exit-code
-
       - name: Verify Doc Updated
         run: ./hack/verify-workspace-clean.sh
 
