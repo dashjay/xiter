@@ -78,4 +78,13 @@ func TestMap(t *testing.T) {
 		}
 		assert.True(t, xmap.Equal(xmap.CoalesceMaps(maps...), _map(0, 100)))
 	})
+
+	t.Run("filter map", func(t *testing.T) {
+		m := _map(0, 100)
+		fn := func(k int, v string) bool {
+			return k > 50
+		}
+		result := xmap.Filter(m, fn)
+		assert.True(t, xmap.Equal(result, _map(51, 100)))
+	})
 }

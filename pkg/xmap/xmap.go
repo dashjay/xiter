@@ -4,9 +4,10 @@
 package xmap
 
 import (
+	"maps"
+
 	"github.com/dashjay/xiter/pkg/union"
 	"github.com/dashjay/xiter/pkg/xiter"
-	"maps"
 )
 
 func Clone[M ~map[K]V, K comparable, V any](m M) M {
