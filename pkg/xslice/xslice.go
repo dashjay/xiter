@@ -537,3 +537,38 @@ func SumN[T constraints.Number](in ...T) T {
 func SumBy[T any, R constraints.Number, Slice ~[]T](in Slice, f func(T) R) R {
 	return xiter.Sum(xiter.Map(f, xiter.FromSlice(in)))
 }
+
+// Uniq returns a new slice with the duplicate elements removed.
+//
+// EXAMPLE:
+//
+//	xslice.Uniq([]int{1, 2, 3, 2, 4}) 👉 [1, 2, 3, 4]
+func Uniq[T comparable, Slice ~[]T](in Slice) Slice {
+	return xiter.ToSlice(xiter.Uniq(xiter.FromSlice(in)))
+}
+
+// GroupBy returns a map of the slice elements grouped by the given function f.
+//
+// EXAMPLE:
+//
+//	xslice.GroupBy([]int{1, 2, 3, 2, 4}, func(x int) int { return x % 2 }) 👉 map[0:[2 4] 1:[1 3]]
+func GroupBy[T any, K comparable, Slice ~[]T](in Slice, f func(T) K) map[K]Slice {
+	seq2 := xiter.MapToSeq2(xiter.FromSlice(in), f)
+	return xiter.Reduce2(func(sum map[K]Slice, k K, v T) map[K]Slice {
+		sum[k] = append(sum[k], v)
+		return sum
+	}, map[K]Slice{}, seq2)
+}
+
+// GroupByMap returns a map of the slice elements grouped by the given function f.
+//
+// EXAMPLE:
+//
+//	xslice.GroupByMap([]int{1, 2, 3, 2, 4}, func(x int) (int, int) { return x % 2, x }) 👉 map[0:[2 4] 1:[1 3]]
+func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, V)) map[K][]V {
+	seq2 := xiter.MapToSeq2Value(xiter.FromSlice(in), f)
+	return xiter.Reduce2(func(sum map[K][]V, k K, v V) map[K][]V {
+		sum[k] = append(sum[k], v)
+		return sum
+	}, map[K][]V{}, seq2)
+}

@@ -288,4 +288,37 @@ func TestSlices(t *testing.T) {
 			return r
 		}))
 	})
+	t.Run("uniq", func(t *testing.T) {
+		assert.Equal(t, []int{1, 2, 3, 4}, xslice.Uniq([]int{1, 2, 3, 2, 4}))
+	})
+	t.Run("group by", func(t *testing.T) {
+		groupedBy := xslice.GroupBy([]int{0, 1, 2, 3, 4}, func(i int) string {
+			if i%2 == 0 {
+				return "even"
+			}
+			return "odd"
+		})
+		assert.Contains(t, groupedBy, "even")
+		assert.Contains(t, groupedBy, "odd")
+		assert.Contains(t, groupedBy["even"], 0)
+		assert.Contains(t, groupedBy["even"], 2)
+		assert.Contains(t, groupedBy["even"], 4)
+		assert.Contains(t, groupedBy["odd"], 1)
+		assert.Contains(t, groupedBy["odd"], 3)
+	})
+	t.Run("group by map", func(t *testing.T) {
+		groupedBy := xslice.GroupByMap([]int{0, 1, 2, 3, 4}, func(i int) (string, int) {
+			if i%2 == 0 {
+				return "even", i * 2
+			}
+			return "odd", i*2 + 1
+		})
+		assert.Contains(t, groupedBy, "even")
+		assert.Contains(t, groupedBy, "odd")
+		assert.Contains(t, groupedBy["even"], 0)
+		assert.Contains(t, groupedBy["even"], 4)
+		assert.Contains(t, groupedBy["even"], 8)
+		assert.Contains(t, groupedBy["odd"], 3)
+		assert.Contains(t, groupedBy["odd"], 7)
+	})
 }

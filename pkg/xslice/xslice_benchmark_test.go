@@ -1,8 +1,10 @@
 package xslice_test
 
 import (
-	"github.com/samber/lo"
+	"bytes"
 	"testing"
+
+	"github.com/samber/lo"
 
 	"github.com/dashjay/xiter/pkg/xslice"
 )
@@ -93,6 +95,61 @@ func BenchmarkSlice(b *testing.B) {
 		b.Run("lo", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_ = lo.Sum(seq)
+			}
+		})
+	})
+
+	b.Run("benchmark uniq", func(b *testing.B) {
+		bytes := bytes.Repeat([]byte("b"), 1024)
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = xslice.Uniq(bytes)
+			}
+		})
+
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = lo.Uniq(bytes)
+			}
+		})
+	})
+
+	b.Run("benchmark group by", func(b *testing.B) {
+		arr := _range(0, 1000)
+		fn := func(i int) string {
+			if i%2 == 0 {
+				return "even"
+			}
+			return "odd"
+		}
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.GroupBy(arr, fn)
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.GroupBy(arr, fn)
+			}
+		})
+	})
+
+	b.Run("benchmark group by map", func(b *testing.B) {
+		arr := _range(0, 1000)
+		fn := func(i int) (string, int) {
+			if i%2 == 0 {
+				return "even", i * i
+			}
+			return "odd", i * i
+		}
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.GroupByMap(arr, fn)
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.GroupByMap(arr, fn)
 			}
 		})
 	})

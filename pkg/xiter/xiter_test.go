@@ -332,7 +332,9 @@ func TestXIter(t *testing.T) {
 	})
 
 	t.Run("test chunk", func(t *testing.T) {
-		result := xiter.ToSlice(xiter.Chunk(xiter.FromSlice(_range(0, 100)), 20))
+		chunkedSeq := xiter.Chunk(xiter.FromSlice(_range(0, 100)), 20)
+		testLimit(t, chunkedSeq, 1)
+		result := xiter.ToSlice(chunkedSeq)
 		assert.Equal(t, _range(0, 20), result[0])
 		assert.Equal(t, _range(20, 40), result[1])
 		assert.Equal(t, _range(40, 60), result[2])
@@ -368,6 +370,26 @@ func TestXIter(t *testing.T) {
 		assert.Equal(t, 50, result)
 		result = xiter.Index(xiter.FromSlice(_range(0, 101)), 66666)
 		assert.Equal(t, -1, result)
+	})
+
+	t.Run("uniq", func(t *testing.T) {
+		seq := xiter.Uniq(xiter.FromSlice([]int{1, 2, 3, 2, 4}))
+		assert.Equal(t, []int{1, 2, 3, 4}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+	})
+
+	t.Run("map to seq2", func(t *testing.T) {
+		seq2 := xiter.MapToSeq2(xiter.FromSlice([]int{1, 2, 3, 2, 4}), func(v int) string { return fmt.Sprintf("%d", v) })
+		testLimit2(t, seq2, 1)
+		assert.Contains(t, xiter.ToSliceSeq2Key(seq2), "1")
+		assert.Contains(t, xiter.ToSliceSeq2Key(seq2), "2")
+		assert.Contains(t, xiter.ToSliceSeq2Key(seq2), "3")
+	})
+
+	t.Run("map to seq2 value", func(t *testing.T) {
+		seq2 := xiter.MapToSeq2Value(xiter.FromSlice([]int{1, 2, 3, 2, 4}), func(v int) (string, int) { return fmt.Sprintf("%d", v), v * v })
+		testLimit2(t, seq2, 1)
+		assert.Equal(t, 9, xiter.ToMap(seq2)["3"])
 	})
 }
 

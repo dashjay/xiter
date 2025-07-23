@@ -15,12 +15,6 @@ import (
 	"github.com/dashjay/xiter/pkg/union"
 )
 
-//var globalXIterPool *ants.Pool
-
-func init() {
-	//globalXIterPool, _ = ants.NewPool(-1, ants.WithPanicHandler(func(a any) {}))
-}
-
 type Seq[V any] func(yield func(V) bool)
 
 type Seq2[K, V any] func(yield func(K, V) bool)
@@ -904,5 +898,36 @@ func Index[T comparable](seq Seq[T], v T) int {
 		return idx
 	} else {
 		return -1
+	}
+}
+
+func Uniq[T comparable](seq Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		m := make(map[T]struct{})
+		seq(func(v T) bool {
+			if _, ok := m[v]; !ok {
+				m[v] = struct{}{}
+				return yield(v)
+			}
+			return true
+		})
+	}
+}
+
+func MapToSeq2[T any, K comparable](in Seq[T], mapFn func(T) K) Seq2[K, T] {
+	return func(yield func(K, T) bool) {
+		in(func(v T) bool {
+			k := mapFn(v)
+			return yield(k, v)
+		})
+	}
+}
+
+func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(T) (K, V)) Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		in(func(ele T) bool {
+			k, v := mapFn(ele)
+			return yield(k, v)
+		})
 	}
 }

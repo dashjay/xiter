@@ -909,6 +909,7 @@ func Chunk[T any](seq Seq[T], n int) Seq[[]T] {
 // This allows unified processing of both keys and values from a key-value sequence.
 //
 // Example:
+//
 //	seq2 := func(yield func(int, string) bool) { yield(1, "one"); yield(2, "two") }
 //	for v := range Seq2ToSeqUnion(seq2) {
 //		// v will be union.U2[int, string] containing either 1, "one", 2, or "two"
@@ -961,5 +962,71 @@ func Index[T comparable](seq Seq[T], v T) int {
 		return idx
 	} else {
 		return -1
+	}
+}
+
+// Uniq return a seq that remove duplicate elements
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3, 2, 4})
+//	uniqSeq := xiter.Uniq(seq)
+//	// uniqSeq will yield: 1, 2, 3, 4
+func Uniq[T comparable](seq Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		m := make(map[T]struct{})
+		for v := range seq {
+			if _, ok := m[v]; !ok {
+				m[v] = struct{}{}
+				if !yield(v) {
+					break
+				}
+			}
+		}
+	}
+}
+
+// MapToSeq2 transforms a Seq[T] into a Seq2[K, T] by applying a mapping function.
+// The mapFn extracts a key K from each element T in the input sequence.
+//
+// Example:
+//
+//	seq := FromSlice([]string{"apple", "banana", "cherry"})
+//	// Map each string to its length as the key, and the string itself as the value
+//	lenMap := MapToSeq2(seq, func(s string) int { return len(s) })
+//	// ToMap can be used to convert Seq2 to a map
+//	fmt.Println(ToMap(lenMap))
+//	// output:
+//	// map[5:apple 6:banana 6:cherry] (order may vary, and duplicate keys will overwrite values)
+func MapToSeq2[T any, K comparable](in Seq[T], mapFn func(ele T) K) Seq2[K, T] {
+	return func(yield func(K, T) bool) {
+		for ele := range in {
+			k := mapFn(ele)
+			if !yield(k, ele) {
+				break
+			}
+		}
+	}
+}
+
+// MapToSeq2Value transforms a Seq[T] into a Seq2[K, V] by applying a mapping function.
+// The mapFn extracts both a key K and a value V from each element T in the input sequence.
+//
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	// Map each integer to its square as the key, and its cube as the value
+//	transformed := MapToSeq2Value(seq, func(i int) (int, int) { return i * i, i * i * i })
+//	fmt.Println(ToMap(transformed))
+//	// output:
+//	// map[1:1 4:8 9:27]
+func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(ele T) (K, V)) Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for ele := range in {
+			k, v := mapFn(ele)
+			if !yield(k, v) {
+				break
+			}
+		}
 	}
 }
