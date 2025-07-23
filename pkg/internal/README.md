@@ -60,6 +60,26 @@ type Ordered interface {
 }
 ```
 
+# utils
+
+```go
+import "github.com/dashjay/xiter/pkg/internal/utils"
+```
+
+## Index
+
+- [func IsZero\[T comparable\]\(v T\) bool](<#IsZero>)
+
+
+<a name="IsZero"></a>
+## func [IsZero](<https://github.com/dashjay/xiter/blob/main/pkg/internal/utils/utils.go#L3>)
+
+```go
+func IsZero[T comparable](v T) bool
+```
+
+
+
 # xassert
 
 ```go

@@ -17,6 +17,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func ChunkInPlace\[T any, Slice \~\[\]T\]\(in Slice, chunkSize int\) \[\]Slice](<#ChunkInPlace>)
 - [func Clone\[T any\]\(in \[\]T\) \[\]T](<#Clone>)
 - [func CloneBy\[T any, U any\]\(in \[\]T, f func\(T\) U\) \[\]U](<#CloneBy>)
+- [func Compact\[T comparable, Slice \~\[\]T\]\(in Slice\) Slice](<#Compact>)
 - [func Concat\[T any\]\(vs ...\[\]T\) \[\]T](<#Concat>)
 - [func Contains\[T comparable\]\(in \[\]T, v T\) bool](<#Contains>)
 - [func ContainsAll\[T comparable\]\(in \[\]T, v \[\]T\) bool](<#ContainsAll>)
@@ -200,6 +201,21 @@ EXAMPLE:
 ```
 xslice.CloneBy([]int{1, 2, 3}, func(x int) int { return x * 2 }) 👉 [2, 4, 6]
 xslice.CloneBy([]int{1, 2, 3}, strconv.Itoa) 👉 ["1", "2", "3"]
+```
+
+<a name="Compact"></a>
+## func [Compact](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L585>)
+
+```go
+func Compact[T comparable, Slice ~[]T](in Slice) Slice
+```
+
+Compact returns a new slice with the zero elements removed.
+
+EXAMPLE:
+
+```
+xslice.Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
 ```
 
 <a name="Concat"></a>
