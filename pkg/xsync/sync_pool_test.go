@@ -1,13 +1,13 @@
-package gsync_test
+package xsync_test
 
 import (
 	"testing"
 
-	"github.com/dashjay/gog/gsync"
+	"github.com/dashjay/xiter/pkg/xsync"
 )
 
 func TestSyncPool(t *testing.T) {
-	p := gsync.NewSyncPool[[]byte](func() []byte {
+	p := xsync.NewSyncPool[[]byte](func() []byte {
 		return make([]byte, 4096)
 	})
 

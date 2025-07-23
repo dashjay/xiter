@@ -1,7 +1,7 @@
 //go:build go1.23
 // +build go1.23
 
-package gsync
+package xsync
 
 // Clear deletes all the entries, resulting in an empty Map.
 // only available in go1.23

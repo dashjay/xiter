@@ -1,7 +1,7 @@
 //go:build go1.20
 // +build go1.20
 
-package gsync
+package xsync
 
 func (s *SyncMap[K, V]) Swap(key K, value V) (previous V, loaded bool) {
 	v, ok := s.m.Swap(key, value)

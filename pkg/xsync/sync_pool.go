@@ -1,4 +1,4 @@
-package gsync
+package xsync
 
 import "sync"
 

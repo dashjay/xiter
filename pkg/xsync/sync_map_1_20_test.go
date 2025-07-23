@@ -1,12 +1,12 @@
 //go:build go1.20
 // +build go1.20
 
-package gsync_test
+package xsync_test
 
 import (
 	"testing"
 
-	"github.com/dashjay/gog/gsync"
+	"github.com/dashjay/xiter/pkg/xsync"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ func TestSyncMap120(t *testing.T) {
 	t.Parallel()
 
 	t.Run("simple swap", func(t *testing.T) {
-		m := gsync.NewSyncMap[string, int]()
+		m := xsync.NewSyncMap[string, int]()
 		m.Store("1", 1)
 
 		v, exists := m.Load("1")
@@ -36,7 +36,7 @@ func TestSyncMap120(t *testing.T) {
 	})
 
 	t.Run("simple compare and swap", func(t *testing.T) {
-		m := gsync.NewSyncMap[string, int]()
+		m := xsync.NewSyncMap[string, int]()
 		m.Store("1", 1)
 
 		v, exists := m.Load("1")
@@ -55,7 +55,7 @@ func TestSyncMap120(t *testing.T) {
 	})
 
 	t.Run("simple compare and delete", func(t *testing.T) {
-		m := gsync.NewSyncMap[string, int]()
+		m := xsync.NewSyncMap[string, int]()
 		m.Store("1", 1)
 
 		v, exists := m.Load("1")
