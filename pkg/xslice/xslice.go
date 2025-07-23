@@ -267,11 +267,7 @@ func MaxBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T] {
 //	xslice.Map([]int{1, 2, 3}, func(x int) int { return x * 2 }) 👉 [2, 4, 6]
 //	xslice.Map([]int{1, 2, 3}, strconv.Itoa) 👉 ["1", "2", "3"]
 func Map[T any, U any](in []T, f func(T) U) []U {
-	out := make([]U, len(in))
-	for i := range in {
-		out[i] = f(in[i])
-	}
-	return out
+	return xiter.ToSlice(xiter.Map(f, xiter.FromSlice(in)))
 }
 
 // Clone returns a copy of the slice.

@@ -2,6 +2,7 @@ package xslice_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/samber/lo"
@@ -164,6 +165,21 @@ func BenchmarkSlice(b *testing.B) {
 		b.Run("lo", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				lo.Filter(arr, func(x int, idx int) bool { return x%2 == 0 })
+			}
+		})
+	})
+
+	b.Run("benchmark map", func(b *testing.B) {
+		arr := _range(0, 1000)
+
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.Map(arr, func(x int) string { return fmt.Sprintf("%d", x) })
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.Map(arr, func(x int, index int) string { return fmt.Sprintf("%d", x) })
 			}
 		})
 	})
