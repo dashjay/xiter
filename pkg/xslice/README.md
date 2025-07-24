@@ -37,6 +37,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func Head\[T any\]\(in \[\]T\) \(v T, hasOne bool\)](<#Head>)
 - [func HeadO\[T any\]\(in \[\]T\) optional.O\[T\]](<#HeadO>)
 - [func Index\[T comparable, Slice \~\[\]T\]\(in Slice, v T\) int](<#Index>)
+- [func Intersect\[T comparable, Slice \~\[\]T\]\(left, right Slice\) Slice](<#Intersect>)
 - [func Join\[T \~string\]\(in \[\]T, sep T\) T](<#Join>)
 - [func Last\[T any, Slice \~\[\]T\]\(in Slice\) \(T, bool\)](<#Last>)
 - [func LastO\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#LastO>)
@@ -542,6 +543,15 @@ xslice.Index([]int{1, 2, 3, 4, 5}, 1) 👉 0
 xslice.Index([]int{1, 2, 3, 4, 5}, 3) 👉 2
 xslice.Index([]int{1, 2, 3, 4, 5}, 666) 👉 -1
 ```
+
+<a name="Intersect"></a>
+## func [Intersect](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L644>)
+
+```go
+func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice
+```
+
+
 
 <a name="Join"></a>
 ## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L203>)

@@ -640,3 +640,22 @@ func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRigh
 	onlyLeftSeq, onlyRightSeq := xiter.Difference(xiter.FromSlice(left), xiter.FromSlice(right))
 	return xiter.ToSlice(onlyLeftSeq), xiter.ToSlice(onlyRightSeq)
 }
+
+func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice {
+	var smaller, larger Slice
+	if len(left) > len(right) {
+		smaller, larger = right, left
+	} else {
+		smaller, larger = left, right
+	}
+	smallerMap := xiter.ToMapFromSeq(xiter.FromSlice(smaller), func(T) struct{} {
+		return struct{}{}
+	})
+
+	return xiter.ToSlice(
+		xiter.Filter(func(v T) bool {
+			_, exists := smallerMap[v]
+			return exists
+		}, xiter.FromSlice(larger)),
+	)
+}

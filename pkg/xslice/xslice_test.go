@@ -347,4 +347,13 @@ func TestSlices(t *testing.T) {
 		assert.Equal(t, []int{6, 7, 8}, onlyRight)
 	})
 
+	t.Run("intersect", func(t *testing.T) {
+		left := []int{1, 2, 3, 4, 5, 6}
+		right := []int{4, 5, 6, 7, 8}
+		assert.Equal(t, []int{4, 5, 6}, xslice.Intersect(left, right))
+		assert.Equal(t, []int{4, 5, 6}, xslice.Intersect(right, left))
+
+		assert.Equal(t, left, xslice.Intersect(left, left))
+	})
+
 }
