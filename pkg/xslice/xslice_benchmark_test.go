@@ -183,6 +183,21 @@ func BenchmarkSlice(b *testing.B) {
 			}
 		})
 	})
+
+	b.Run("benchmark difference", func(b *testing.B) {
+		left := _range(0, 1000)
+		right := _range(500, 1500)
+		b.Run("xslice", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				xslice.Difference(left, right)
+			}
+		})
+		b.Run("lo", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lo.Difference(left, right)
+			}
+		})
+	})
 }
 
 func BenchmarkChunk(b *testing.B) {

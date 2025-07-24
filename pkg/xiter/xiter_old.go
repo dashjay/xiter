@@ -349,6 +349,15 @@ func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V) {
 	return out
 }
 
+func ToMapFromSeq[K comparable, V any](seq Seq[K], fn func(k K) V) (out map[K]V) {
+	out = make(map[K]V)
+	seq(func(k K) bool {
+		out[k] = fn(k)
+		return true
+	})
+	return out
+}
+
 func FromMapKeys[K comparable, V any](m map[K]V) Seq[K] {
 	return func(yield func(K) bool) {
 		for k := range m {

@@ -24,6 +24,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func ContainsAny\[T comparable\]\(in \[\]T, v \[\]T\) bool](<#ContainsAny>)
 - [func ContainsBy\[T any\]\(in \[\]T, f func\(T\) bool\) bool](<#ContainsBy>)
 - [func Count\[T any\]\(in \[\]T\) int](<#Count>)
+- [func Difference\[T comparable, Slice \~\[\]T\]\(left, right Slice\) \(onlyLeft, onlyRight Slice\)](<#Difference>)
 - [func Filter\[T any, Slice \~\[\]T\]\(in Slice, f func\(T\) bool\) Slice](<#Filter>)
 - [func Find\[T any\]\(in \[\]T, f func\(T\) bool\) \(val T, found bool\)](<#Find>)
 - [func FindO\[T any\]\(in \[\]T, f func\(T\) bool\) optional.O\[T\]](<#FindO>)
@@ -325,6 +326,25 @@ EXAMPLE:
 ```
 xslice.Count([]int{1, 2, 3}) 👉 3
 xslice.Count([]int{}) 👉 0
+```
+
+<a name="Difference"></a>
+## func [Difference](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L639>)
+
+```go
+func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRight Slice)
+```
+
+Difference returns two slices: the first slice contains the elements that are in the left slice but not in the right slice, and the second slice contains the elements that are in the right slice but not in the left slice.
+
+EXAMPLE:
+
+```
+left := []int{1, 2, 3, 4, 5}
+right := []int{4, 5, 6, 7, 8}
+onlyLeft, onlyRight := xslice.Difference(left, right)
+fmt.Println(onlyLeft)  // [1 2 3]
+fmt.Println(onlyRight) // [6 7 8]
 ```
 
 <a name="Filter"></a>

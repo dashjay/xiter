@@ -1,9 +1,10 @@
 package xiter_test
 
 import (
+	"testing"
+
 	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestXIterCommon(t *testing.T) {
@@ -71,5 +72,13 @@ func TestXIterCommon(t *testing.T) {
 		close(ch)
 		seq := xiter.FromChan(ch)
 		testLimit(t, seq, 1)
+	})
+
+	t.Run("difference", func(t *testing.T) {
+		left := xiter.FromSlice(_range(0, 10))
+		right := xiter.FromSlice(_range(5, 15))
+		onlyLeft, onlyRight := xiter.Difference(left, right)
+		assert.Equal(t, _range(0, 5), xiter.ToSlice(onlyLeft))
+		assert.Equal(t, _range(10, 15), xiter.ToSlice(onlyRight))
 	})
 }

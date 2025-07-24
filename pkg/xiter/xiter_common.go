@@ -111,3 +111,31 @@ func FromChan[T any](in <-chan T) Seq[T] {
 		}
 	}
 }
+
+// Difference returns two sequences: the first sequence contains elements that are in the left sequence but not in the right sequence,
+// and the second sequence contains elements that are in the right sequence but not in the left sequence.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4}
+//	right := []int{3, 4, 5, 6}
+//	onlyLeft, onlyRight := Difference(FromSlice(left), FromSlice(right))
+//	// onlyLeft 👉 [1 2]
+//	// onlyRight 👉 [5 6]
+func Difference[T comparable](left Seq[T], right Seq[T]) (onlyLeft Seq[T], onlyRight Seq[T]) {
+	leftMap := ToMapFromSeq(left, func(k T) struct{} {
+		return struct{}{}
+	})
+	rightMap := ToMapFromSeq(right, func(k T) struct{} {
+		return struct{}{}
+	})
+
+	return Filter(func(v T) bool {
+			_, ok := rightMap[v]
+			return !ok
+		}, left),
+		Filter(func(v T) bool {
+			_, ok := leftMap[v]
+			return !ok
+		}, right)
+}

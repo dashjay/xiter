@@ -625,3 +625,18 @@ func Last[T any, Slice ~[]T](in Slice) (T, bool) {
 func LastO[T any, Slice ~[]T](in Slice) optional.O[T] {
 	return optional.FromValue2(Last(in))
 }
+
+// Difference returns two slices: the first slice contains the elements that are in the left slice but not in the right slice,
+// and the second slice contains the elements that are in the right slice but not in the left slice.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4, 5}
+//	right := []int{4, 5, 6, 7, 8}
+//	onlyLeft, onlyRight := xslice.Difference(left, right)
+//	fmt.Println(onlyLeft)  // [1 2 3]
+//	fmt.Println(onlyRight) // [6 7 8]
+func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRight Slice) {
+	onlyLeftSeq, onlyRightSeq := xiter.Difference(xiter.FromSlice(left), xiter.FromSlice(right))
+	return xiter.ToSlice(onlyLeftSeq), xiter.ToSlice(onlyRightSeq)
+}

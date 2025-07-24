@@ -331,9 +331,20 @@ func TestSlices(t *testing.T) {
 
 	t.Run("first", func(t *testing.T) {
 		assert.Equal(t, 1, xslice.FirstO([]int{1, 2, 3}).Must())
+		assert.False(t, xslice.FirstO([]int{}).Ok())
 	})
 
 	t.Run("last", func(t *testing.T) {
 		assert.Equal(t, 3, xslice.LastO([]int{1, 2, 3}).Must())
+		assert.False(t, xslice.LastO([]int{}).Ok())
 	})
+
+	t.Run("difference", func(t *testing.T) {
+		left := []int{1, 2, 3, 4, 5}
+		right := []int{4, 5, 6, 7, 8}
+		onlyLeft, onlyRight := xslice.Difference(left, right)
+		assert.Equal(t, []int{1, 2, 3}, onlyLeft)
+		assert.Equal(t, []int{6, 7, 8}, onlyRight)
+	})
+
 }

@@ -504,6 +504,14 @@ func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V) {
 	return maps.Collect(iter.Seq2[K, V](seq))
 }
 
+func ToMapFromSeq[K comparable, V any](seq Seq[K], fn func(k K) V) (out map[K]V) {
+	out = make(map[K]V)
+	for k := range seq {
+		out[k] = fn(k)
+	}
+	return out
+}
+
 func FromMapKeys[K comparable, V any](m map[K]V) Seq[K] {
 	return Seq[K](maps.Keys(m))
 }
