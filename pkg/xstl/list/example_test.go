@@ -6,7 +6,7 @@ package list_test
 
 import (
 	"fmt"
-	
+
 	"github.com/dashjay/xiter/pkg/xstl/list"
 )
 
