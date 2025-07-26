@@ -1,9 +1,12 @@
 package xiter_test
 
 import (
+	"sort"
+	"strconv"
+	"testing"
+
 	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestXIterCommon(t *testing.T) {
@@ -71,5 +74,58 @@ func TestXIterCommon(t *testing.T) {
 		close(ch)
 		seq := xiter.FromChan(ch)
 		testLimit(t, seq, 1)
+	})
+
+	t.Run("difference", func(t *testing.T) {
+		left := xiter.FromSlice(_range(0, 10))
+		right := xiter.FromSlice(_range(5, 15))
+		onlyLeft, onlyRight := xiter.Difference(left, right)
+		assert.Equal(t, _range(0, 5), xiter.ToSlice(onlyLeft))
+		assert.Equal(t, _range(10, 15), xiter.ToSlice(onlyRight))
+	})
+
+	t.Run("intersect", func(t *testing.T) {
+		left := xiter.FromSlice(_range(0, 10))
+		right := xiter.FromSlice(_range(5, 15))
+		assert.Equal(t, _range(5, 10), xiter.ToSlice(xiter.Intersect(left, right)))
+		assert.True(t, xiter.Equal(left, xiter.Intersect(left, left)))
+	})
+
+	t.Run("mean", func(t *testing.T) {
+		// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+		seq := xiter.FromSlice(_range(0, 10))
+		r := xiter.Mean(seq)
+		assert.Equal(t, xiter.Sum(seq)/len(_range(0, 10)), r)
+	})
+
+	t.Run("mean by", func(t *testing.T) {
+		strSeq := xiter.Map(func(in int) string {
+			return strconv.Itoa(in)
+		}, xiter.FromSlice(_range(0, 10)))
+
+		r := xiter.MeanBy(strSeq, func(t string) int {
+			v, _ := strconv.Atoi(t)
+			return v
+		})
+		assert.Equal(t, xiter.Sum(xiter.FromSlice(_range(0, 10)))/len(_range(0, 10)), r)
+	})
+	t.Run("moderate", func(t *testing.T) {
+		moderate := xiter.ModerateO(xiter.FromSlice([]int{1, 2, 3, 4, 5, 5, 5, 6, 6, 6, 6}))
+		assert.True(t, moderate.Ok())
+		assert.Equal(t, 6, moderate.Must())
+	})
+
+	t.Run("union", func(t *testing.T) {
+		left := xiter.FromSlice(_range(0, 10))
+		right := xiter.FromSlice(_range(5, 15))
+		x := xiter.ToSlice(xiter.Union(left, right))
+		sort.Sort(sort.IntSlice(x))
+		assert.Equal(t, _range(0, 15), x)
+
+		ut := func(int) struct{} {
+			return struct{}{}
+		}
+		assert.Equal(t, xiter.ToMapFromSeq(xiter.Union(left, right), ut),
+			xiter.ToMapFromSeq(xiter.Union(right, left), ut))
 	})
 }

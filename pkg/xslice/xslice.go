@@ -267,11 +267,7 @@ func MaxBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T] {
 //	xslice.Map([]int{1, 2, 3}, func(x int) int { return x * 2 }) 👉 [2, 4, 6]
 //	xslice.Map([]int{1, 2, 3}, strconv.Itoa) 👉 ["1", "2", "3"]
 func Map[T any, U any](in []T, f func(T) U) []U {
-	out := make([]U, len(in))
-	for i := range in {
-		out[i] = f(in[i])
-	}
-	return out
+	return xiter.ToSlice(xiter.Map(f, xiter.FromSlice(in)))
 }
 
 // Clone returns a copy of the slice.
@@ -579,4 +575,104 @@ func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, 
 //	xslice.Filter([]int{1, 2, 3, 2, 4}, func(x int) bool { return x%2 == 0 }) 👉 [2 4]
 func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice {
 	return xiter.ToSlice(xiter.Filter(f, xiter.FromSlice(in)))
+}
+
+// Compact returns a new slice with the zero elements removed.
+//
+// EXAMPLE:
+//
+//	xslice.Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
+func Compact[T comparable, Slice ~[]T](in Slice) Slice {
+	return xiter.ToSlice(xiter.Compact(xiter.FromSlice(in)))
+}
+
+// First returns the first element in the slice.
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.First([]int{1, 2, 3}) 👉 1
+//	xslice.First([]int{}) 👉 0
+func First[T any, Slice ~[]T](in Slice) (T, bool) {
+	return xiter.First(xiter.FromSlice(in))
+}
+
+// FirstO returns the first element in the slice as an optional.O[T].
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.FirstO([]int{1, 2, 3}) 👉 1
+//	xslice.FirstO([]int{}) 👉 0
+func FirstO[T any, Slice ~[]T](in Slice) optional.O[T] {
+	return optional.FromValue2(First(in))
+}
+
+// Last returns the last element in the slice.
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.Last([]int{1, 2, 3}) 👉 3
+//	xslice.Last([]int{}) 👉 0
+func Last[T any, Slice ~[]T](in Slice) (T, bool) {
+	return xiter.Last(xiter.FromSlice(in))
+}
+
+// LastO returns the last element in the slice as an optional.O[T].
+// If the slice is empty, the zero value of T is returned.
+// EXAMPLE:
+//
+//	xslice.LastO([]int{1, 2, 3}) 👉 3
+//	xslice.LastO([]int{}) 👉 0
+func LastO[T any, Slice ~[]T](in Slice) optional.O[T] {
+	return optional.FromValue2(Last(in))
+}
+
+// Difference returns two slices: the first slice contains the elements that are in the left slice but not in the right slice,
+// and the second slice contains the elements that are in the right slice but not in the left slice.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4, 5}
+//	right := []int{4, 5, 6, 7, 8}
+//	onlyLeft, onlyRight := xslice.Difference(left, right)
+//	fmt.Println(onlyLeft)  // [1 2 3]
+//	fmt.Println(onlyRight) // [6 7 8]
+func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRight Slice) {
+	onlyLeftSeq, onlyRightSeq := xiter.Difference(xiter.FromSlice(left), xiter.FromSlice(right))
+	return xiter.ToSlice(onlyLeftSeq), xiter.ToSlice(onlyRightSeq)
+}
+
+// Intersect returns a slice that contains the elements that are in both left and right slices.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4, 5}
+//	right := []int{4, 5, 6, 7, 8}
+//	intersect := xslice.Intersect(left, right)
+//	fmt.Println(intersect) // [4 5]
+func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice {
+	var smaller, larger Slice
+	if len(left) > len(right) {
+		smaller, larger = right, left
+	} else {
+		smaller, larger = left, right
+	}
+	return xiter.ToSlice(xiter.Intersect(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
+}
+
+// Union returns a slice that contains all elements in left and right slices.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4}
+//	right := []int{3, 4, 5, 6}
+//	union := xslice.Union(left, right)
+//	fmt.Println(union) // [1 2 3 4 5 6]
+func Union[T comparable, Slice ~[]T](left, right Slice) Slice {
+	var smaller, larger Slice
+	if len(left) <= len(right) {
+		smaller, larger = left, right
+	} else {
+		smaller, larger = right, left
+	}
+	return xiter.ToSlice(xiter.Union(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
 }

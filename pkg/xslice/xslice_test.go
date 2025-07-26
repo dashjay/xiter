@@ -1,6 +1,7 @@
 package xslice_test
 
 import (
+	"sort"
 	"strconv"
 	"testing"
 
@@ -323,5 +324,44 @@ func TestSlices(t *testing.T) {
 	})
 	t.Run("filter", func(t *testing.T) {
 		assert.Equal(t, []int{2, 4}, xslice.Filter([]int{1, 2, 3, 4}, func(x int) bool { return x%2 == 0 }))
+	})
+
+	t.Run("compact", func(t *testing.T) {
+		assert.Equal(t, []int{1, 2, 3, 4}, xslice.Compact([]int{0, 1, 2, 3, 4}))
+	})
+
+	t.Run("first", func(t *testing.T) {
+		assert.Equal(t, 1, xslice.FirstO([]int{1, 2, 3}).Must())
+		assert.False(t, xslice.FirstO([]int{}).Ok())
+	})
+
+	t.Run("last", func(t *testing.T) {
+		assert.Equal(t, 3, xslice.LastO([]int{1, 2, 3}).Must())
+		assert.False(t, xslice.LastO([]int{}).Ok())
+	})
+
+	t.Run("difference", func(t *testing.T) {
+		left := []int{1, 2, 3, 4, 5}
+		right := []int{4, 5, 6, 7, 8}
+		onlyLeft, onlyRight := xslice.Difference(left, right)
+		assert.Equal(t, []int{1, 2, 3}, onlyLeft)
+		assert.Equal(t, []int{6, 7, 8}, onlyRight)
+	})
+
+	t.Run("intersect", func(t *testing.T) {
+		left := []int{1, 2, 3, 4, 5, 6}
+		right := []int{4, 5, 6, 7, 8}
+		assert.Equal(t, []int{4, 5, 6}, xslice.Intersect(left, right))
+		assert.Equal(t, []int{4, 5, 6}, xslice.Intersect(right, left))
+
+		assert.Equal(t, left, xslice.Intersect(left, left))
+	})
+
+	t.Run("union", func(t *testing.T) {
+		left := []int{1, 2, 3, 4, 5, 6}
+		right := []int{4, 5, 6, 7, 8}
+		res := xslice.Union(left, right)
+		sort.Sort(sort.IntSlice(res))
+		assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7, 8}, res)
 	})
 }

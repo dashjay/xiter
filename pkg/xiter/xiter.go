@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/dashjay/xiter/pkg/internal/utils"
+
 	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
@@ -478,6 +480,7 @@ func ToSliceSeq2Value[K, V any](seq Seq2[K, V]) (out []V) {
 	return
 }
 
+// Seq2KeyToSeq return a seq that only contain keys in seq2.
 func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K] {
 	return func(yield func(K) bool) {
 		for k := range in {
@@ -488,6 +491,7 @@ func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K] {
 	}
 }
 
+// Seq2ValueToSeq return a seq that only contain values in seq2.
 func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V] {
 	return func(yield func(V) bool) {
 		for _, v := range in {
@@ -500,6 +504,14 @@ func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V] {
 
 func ToMap[K comparable, V any](seq Seq2[K, V]) (out map[K]V) {
 	return maps.Collect(iter.Seq2[K, V](seq))
+}
+
+func ToMapFromSeq[K comparable, V any](seq Seq[K], fn func(k K) V) (out map[K]V) {
+	out = make(map[K]V)
+	for k := range seq {
+		out[k] = fn(k)
+	}
+	return out
 }
 
 func FromMapKeys[K comparable, V any](m map[K]V) Seq[K] {
@@ -1025,6 +1037,81 @@ func MapToSeq2Value[T any, K comparable, V any](in Seq[T], mapFn func(ele T) (K,
 		for ele := range in {
 			k, v := mapFn(ele)
 			if !yield(k, v) {
+				break
+			}
+		}
+	}
+}
+
+// First returns the first element in the sequence.
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	first, ok := First(seq)
+//	// first is 1, ok is true
+func First[T any](in Seq[T]) (T, bool) {
+	var v T
+	var ok = false
+	for t := range in {
+		v = t
+		ok = true
+		break
+	}
+	return v, ok
+}
+
+// FirstO returns the first element in the sequence as an optional.O[T].
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	first, ok := FirstO(seq)
+//	// first is 1, ok is true
+func FirstO[T any](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(First(in))
+}
+
+// Last returns the last element in the sequence.
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	last, ok := Last(seq)
+//	// last is 3, ok is true
+func Last[T any](in Seq[T]) (T, bool) {
+	var v T
+	var ok = false
+	for t := range in {
+		v = t
+		ok = true
+	}
+	return v, ok
+}
+
+// LastO returns the last element in the sequence as an optional.O[T].
+// If the sequence is empty, the zero value of T is returned.
+// Example:
+//
+//	seq := FromSlice([]int{1, 2, 3})
+//	last, ok := LastO(seq)
+//	// last is 3, ok is true
+func LastO[T any](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(Last(in))
+}
+
+// Compact returns a new sequence with the zero elements removed.
+//
+// EXAMPLE:
+//
+//	Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
+func Compact[T comparable](in Seq[T]) Seq[T] {
+	return func(yield func(T) bool) {
+		for t := range in {
+			if utils.IsZero(t) {
+				continue
+			}
+			if !yield(t) {
 				break
 			}
 		}
