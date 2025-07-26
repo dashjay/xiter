@@ -480,6 +480,7 @@ func ToSliceSeq2Value[K, V any](seq Seq2[K, V]) (out []V) {
 	return
 }
 
+// Seq2KeyToSeq return a seq that only contain keys in seq2.
 func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K] {
 	return func(yield func(K) bool) {
 		for k := range in {
@@ -490,6 +491,7 @@ func Seq2KeyToSeq[K, V any](in Seq2[K, V]) Seq[K] {
 	}
 }
 
+// Seq2ValueToSeq return a seq that only contain values in seq2.
 func Seq2ValueToSeq[K, V any](in Seq2[K, V]) Seq[V] {
 	return func(yield func(V) bool) {
 		for _, v := range in {

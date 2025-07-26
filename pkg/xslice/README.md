@@ -61,6 +61,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func Sum\[T constraints.Number, Slice \~\[\]T\]\(in Slice\) T](<#Sum>)
 - [func SumBy\[T any, R constraints.Number, Slice \~\[\]T\]\(in Slice, f func\(T\) R\) R](<#SumBy>)
 - [func SumN\[T constraints.Number\]\(in ...T\) T](<#SumN>)
+- [func Union\[T comparable, Slice \~\[\]T\]\(left, right Slice\) Slice](<#Union>)
 - [func Uniq\[T comparable, Slice \~\[\]T\]\(in Slice\) Slice](<#Uniq>)
 
 
@@ -545,13 +546,22 @@ xslice.Index([]int{1, 2, 3, 4, 5}, 666) 👉 -1
 ```
 
 <a name="Intersect"></a>
-## func [Intersect](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L644>)
+## func [Intersect](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L652>)
 
 ```go
 func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice
 ```
 
+Intersect returns a slice that contains the elements that are in both left and right slices.
 
+EXAMPLE:
+
+```
+left := []int{1, 2, 3, 4, 5}
+right := []int{4, 5, 6, 7, 8}
+intersect := xslice.Intersect(left, right)
+fmt.Println(intersect) // [4 5]
+```
 
 <a name="Join"></a>
 ## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L203>)
@@ -913,6 +923,24 @@ EXAMPLE:
 ```
 xslice.SumN(1, 2, 3) 👉 6
 xslice.SumN() 👉 0
+```
+
+<a name="Union"></a>
+## func [Union](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L670>)
+
+```go
+func Union[T comparable, Slice ~[]T](left, right Slice) Slice
+```
+
+Union returns a slice that contains all elements in left and right slices.
+
+EXAMPLE:
+
+```
+left := []int{1, 2, 3, 4}
+right := []int{3, 4, 5, 6}
+union := xslice.Union(left, right)
+fmt.Println(union) // [1 2 3 4 5 6]
 ```
 
 <a name="Uniq"></a>

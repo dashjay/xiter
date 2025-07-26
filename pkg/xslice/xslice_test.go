@@ -1,6 +1,7 @@
 package xslice_test
 
 import (
+	"sort"
 	"strconv"
 	"testing"
 
@@ -356,4 +357,11 @@ func TestSlices(t *testing.T) {
 		assert.Equal(t, left, xslice.Intersect(left, left))
 	})
 
+	t.Run("union", func(t *testing.T) {
+		left := []int{1, 2, 3, 4, 5, 6}
+		right := []int{4, 5, 6, 7, 8}
+		res := xslice.Union(left, right)
+		sort.Sort(sort.IntSlice(res))
+		assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7, 8}, res)
+	})
 }

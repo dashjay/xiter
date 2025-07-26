@@ -1,6 +1,7 @@
 package xiter
 
 import (
+	"github.com/dashjay/xiter/pkg/internal/constraints"
 	gassert "github.com/dashjay/xiter/pkg/internal/xassert"
 	"github.com/dashjay/xiter/pkg/optional"
 )
@@ -138,4 +139,102 @@ func Difference[T comparable](left Seq[T], right Seq[T]) (onlyLeft Seq[T], onlyR
 			_, ok := leftMap[v]
 			return !ok
 		}, right)
+}
+
+// Intersect return a seq that only contain elements in both left and right.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4}
+//	right := []int{3, 4, 5, 6}
+//	intersect := Intersect(FromSlice(left), FromSlice(right))
+//	// intersect 👉 [3 4]
+func Intersect[T comparable](left Seq[T], right Seq[T]) Seq[T] {
+	leftMap := ToMapFromSeq(left, func(k T) struct{} {
+		return struct{}{}
+	})
+	return Filter(func(v T) bool {
+		_, exists := leftMap[v]
+		return exists
+	}, right)
+}
+
+// Union return a seq that contain all elements in left and right.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4}
+//	right := []int{3, 4, 5, 6}
+//	union := Union(FromSlice(left), FromSlice(right))
+//	// union 👉 [1 2 3 4 5 6]
+func Union[T comparable](left, right Seq[T]) Seq[T] {
+	leftMap := ToMapFromSeq(left, func(k T) struct{} {
+		return struct{}{}
+	})
+	return Concat(left, Filter(func(v T) bool {
+		_, exists := leftMap[v]
+		return !exists
+	}, right))
+}
+
+// Mean return the mean of seq.
+//
+// EXAMPLE:
+//
+//	mean := Mean(FromSlice([]int{1, 2, 3, 4, 5}))
+//	// mean 👉 3
+func Mean[T constraints.Number](in Seq[T]) T {
+	var count T = 0
+	s := Reduce(func(sum T, v T) T {
+		count++
+		return sum + v
+	}, 0, in)
+	return s / count
+}
+
+// MeanBy return the mean of seq by fn.
+//
+// EXAMPLE:
+//
+//	mean := MeanBy(FromSlice([]int{1, 2, 3, 4, 5}), func(v int) int {
+//		return v * 2
+//	})
+//	// mean 👉 6
+func MeanBy[T any, R constraints.Number](in Seq[T], fn func(T) R) R {
+	var count R = 0
+	s := Reduce(func(sum R, v T) R {
+		count++
+		return sum + fn(v)
+	}, 0, in)
+	return s / count
+}
+
+// Moderate return the most common element in seq.
+//
+// EXAMPLE:
+//
+//	moderate := Moderate(FromSlice([]int{1, 2, 3, 4, 5, 5, 5, 6, 6, 6, 6}))
+//	// moderate 👉 6
+func Moderate[T comparable](in Seq[T]) (T, bool) {
+	var maxTimes int
+	var result T
+	_ = Reduce(func(sum map[T]int, v T) map[T]int {
+		sum[v]++
+		if sum[v] > maxTimes {
+			maxTimes = sum[v]
+			result = v
+		}
+		return sum
+	}, make(map[T]int), in)
+	return result, maxTimes > 0
+}
+
+// ModerateO return the most common element in seq.
+//
+// EXAMPLE:
+//
+//	moderate := ModerateO(FromSlice([]int{1, 2, 3, 4, 5, 5, 5, 6, 6, 6, 6}))
+//	// moderate 👉 6
+func ModerateO[T constraints.Number](in Seq[T]) optional.O[T] {
+	return optional.FromValue2(Moderate(in))
 }

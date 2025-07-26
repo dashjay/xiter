@@ -641,6 +641,14 @@ func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRigh
 	return xiter.ToSlice(onlyLeftSeq), xiter.ToSlice(onlyRightSeq)
 }
 
+// Intersect returns a slice that contains the elements that are in both left and right slices.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4, 5}
+//	right := []int{4, 5, 6, 7, 8}
+//	intersect := xslice.Intersect(left, right)
+//	fmt.Println(intersect) // [4 5]
 func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice {
 	var smaller, larger Slice
 	if len(left) > len(right) {
@@ -648,14 +656,23 @@ func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice {
 	} else {
 		smaller, larger = left, right
 	}
-	smallerMap := xiter.ToMapFromSeq(xiter.FromSlice(smaller), func(T) struct{} {
-		return struct{}{}
-	})
+	return xiter.ToSlice(xiter.Intersect(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
+}
 
-	return xiter.ToSlice(
-		xiter.Filter(func(v T) bool {
-			_, exists := smallerMap[v]
-			return exists
-		}, xiter.FromSlice(larger)),
-	)
+// Union returns a slice that contains all elements in left and right slices.
+//
+// EXAMPLE:
+//
+//	left := []int{1, 2, 3, 4}
+//	right := []int{3, 4, 5, 6}
+//	union := xslice.Union(left, right)
+//	fmt.Println(union) // [1 2 3 4 5 6]
+func Union[T comparable, Slice ~[]T](left, right Slice) Slice {
+	var smaller, larger Slice
+	if len(left) <= len(right) {
+		smaller, larger = left, right
+	} else {
+		smaller, larger = right, left
+	}
+	return xiter.ToSlice(xiter.Union(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
 }

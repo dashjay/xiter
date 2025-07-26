@@ -416,6 +416,7 @@ func TestXIter(t *testing.T) {
 
 	t.Run("compact", func(t *testing.T) {
 		seq := xiter.Compact(xiter.FromSlice([]int{0, 1, 2, 3, 4}))
+		testLimit(t, seq, 1)
 		assert.Equal(t, []int{1, 2, 3, 4}, xiter.ToSlice(seq))
 	})
 }
