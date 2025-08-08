@@ -8,9 +8,58 @@ import "github.com/dashjay/xiter/pkg/union"
 
 ## Index
 
+- [type U10](<#U10>)
+- [type U11](<#U11>)
 - [type U2](<#U2>)
 - [type U3](<#U3>)
+- [type U4](<#U4>)
+- [type U5](<#U5>)
+- [type U6](<#U6>)
+- [type U7](<#U7>)
+- [type U8](<#U8>)
+- [type U9](<#U9>)
 
+
+<a name="U10"></a>
+## type [U10](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L71-L82>)
+
+
+
+```go
+type U10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+    T6  T6
+    T7  T7
+    T8  T8
+    T9  T9
+    T10 T10
+}
+```
+
+<a name="U11"></a>
+## type [U11](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L84-L96>)
+
+
+
+```go
+type U11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+    T6  T6
+    T7  T7
+    T8  T8
+    T9  T9
+    T10 T10
+    T11 T11
+}
+```
 
 <a name="U2"></a>
 ## type [U2](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L3-L6>)
@@ -34,6 +83,105 @@ type U3[T1, T2, T3 any] struct {
     T1  T1
     T2  T2
     T3  T3
+}
+```
+
+<a name="U4"></a>
+## type [U4](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L14-L19>)
+
+
+
+```go
+type U4[T1, T2, T3, T4 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+}
+```
+
+<a name="U5"></a>
+## type [U5](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L21-L27>)
+
+
+
+```go
+type U5[T1, T2, T3, T4, T5 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+}
+```
+
+<a name="U6"></a>
+## type [U6](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L29-L36>)
+
+
+
+```go
+type U6[T1, T2, T3, T4, T5, T6 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+    T6  T6
+}
+```
+
+<a name="U7"></a>
+## type [U7](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L38-L46>)
+
+
+
+```go
+type U7[T1, T2, T3, T4, T5, T6, T7 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+    T6  T6
+    T7  T7
+}
+```
+
+<a name="U8"></a>
+## type [U8](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L48-L57>)
+
+
+
+```go
+type U8[T1, T2, T3, T4, T5, T6, T7, T8 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+    T6  T6
+    T7  T7
+    T8  T8
+}
+```
+
+<a name="U9"></a>
+## type [U9](<https://github.com/dashjay/xiter/blob/main/pkg/union/union.go#L59-L69>)
+
+
+
+```go
+type U9[T1, T2, T3, T4, T5, T6, T7, T8, T9 any] struct {
+    T1  T1
+    T2  T2
+    T3  T3
+    T4  T4
+    T5  T5
+    T6  T6
+    T7  T7
+    T8  T8
+    T9  T9
 }
 ```
 
