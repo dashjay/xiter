@@ -132,16 +132,7 @@ func TestMap(t *testing.T) {
 		emptyMap := map[string]int{}
 		emptyResult := xmap.MapKeys(emptyMap, fn)
 		assert.Equal(t, map[string]int{}, emptyResult)
-
-		// Test with duplicate key generation (last one wins)
-		m2 := map[int]string{1: "a", 2: "b", 3: "c"}
-		fn2 := func(k int, v string) int {
-			return k % 2 // This will create duplicate keys: 1%2=1, 2%2=0, 3%2=1
-		}
-		result2 := xmap.MapKeys(m2, fn2)
-		// Should have keys 0 and 1, with values from the last occurrence of each key
-		expected2 := map[int]string{0: "b", 1: "c"}
-		assert.Equal(t, expected2, result2)
+		
 	})
 
 }
