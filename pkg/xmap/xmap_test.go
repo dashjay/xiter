@@ -87,4 +87,61 @@ func TestMap(t *testing.T) {
 		result := xmap.Filter(m, fn)
 		assert.True(t, xmap.Equal(result, _map(51, 100)))
 	})
+
+	t.Run("map values", func(t *testing.T) {
+		m := map[string]int{"a": 1, "b": 2, "c": 3}
+		fn := func(k string, v int) string {
+			return fmt.Sprintf("value_%d", v)
+		}
+		var result = xmap.MapValues(m, fn)
+		expected := map[string]string{"a": "value_1", "b": "value_2", "c": "value_3"}
+		assert.Equal(t, expected, result)
+
+		// Test with key usage in transformation
+		fnWithKey := func(k string, v int) string {
+			return fmt.Sprintf("%s_%d", k, v)
+		}
+		resultWithKey := xmap.MapValues(m, fnWithKey)
+		expectedWithKey := map[string]string{"a": "a_1", "b": "b_2", "c": "c_3"}
+		assert.Equal(t, expectedWithKey, resultWithKey)
+
+		// Test with empty map
+		emptyMap := map[string]int{}
+		emptyResult := xmap.MapValues(emptyMap, fn)
+		assert.Equal(t, map[string]string{}, emptyResult)
+	})
+
+	t.Run("map keys", func(t *testing.T) {
+		m := map[string]int{"a": 1, "b": 2, "c": 3}
+		fn := func(k string, v int) string {
+			return k + "_key"
+		}
+		var result = xmap.MapKeys(m, fn)
+		expected := map[string]int{"a_key": 1, "b_key": 2, "c_key": 3}
+		assert.Equal(t, expected, result)
+
+		// Test with value usage in transformation
+		fnWithValue := func(k string, v int) string {
+			return fmt.Sprintf("%s_%d", k, v)
+		}
+		resultWithValue := xmap.MapKeys(m, fnWithValue)
+		expectedWithValue := map[string]int{"a_1": 1, "b_2": 2, "c_3": 3}
+		assert.Equal(t, expectedWithValue, resultWithValue)
+
+		// Test with empty map
+		emptyMap := map[string]int{}
+		emptyResult := xmap.MapKeys(emptyMap, fn)
+		assert.Equal(t, map[string]int{}, emptyResult)
+
+		// Test with duplicate key generation (last one wins)
+		m2 := map[int]string{1: "a", 2: "b", 3: "c"}
+		fn2 := func(k int, v string) int {
+			return k % 2 // This will create duplicate keys: 1%2=1, 2%2=0, 3%2=1
+		}
+		result2 := xmap.MapKeys(m2, fn2)
+		// Should have keys 0 and 1, with values from the last occurrence of each key
+		expected2 := map[int]string{0: "b", 1: "c"}
+		assert.Equal(t, expected2, result2)
+	})
+
 }

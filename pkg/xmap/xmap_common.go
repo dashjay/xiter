@@ -48,3 +48,51 @@ func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M {
 func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M {
 	return xiter.ToMap(xiter.Filter2(fn, xiter.FromMapKeyAndValues(in)))
 }
+
+// MapValues transforms the values of a map using the provided function while keeping keys unchanged.
+// This is useful for transforming data structures while preserving the key associations.
+//
+// Parameters:
+//
+//	in M: The input map to transform
+//	fn func(K, V1) V2: A function that takes a key and its corresponding value, and returns a new value
+//
+// Returns:
+//
+//	map[K]V2: A new map with the same keys as the input map but with transformed values
+//
+// Example:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	fn := func(k string, v int) string {
+//		return fmt.Sprintf("value_%d", v)
+//	}
+//	result := MapValues(m, fn)
+//	// result will be map[string]string{"a": "value_1", "b": "value_2", "c": "value_3"}
+func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V2 {
+	return xiter.ToMap(xiter.Map2(func(k K, v V1) (K, V2) { return k, fn(k, v) }, xiter.FromMapKeyAndValues(in)))
+}
+
+// MapKeys transforms the keys of a map using the provided function while keeping values unchanged.
+// This is useful for transforming data structures while preserving the value associations.
+//
+// Parameters:
+//
+//	in map[K]V1: The input map to transform
+//	fn func(K, V1) K: A function that takes a key and its corresponding value, and returns a new key
+//
+// Returns:
+//
+//	map[K]V1: A new map with the same values as the input map but with transformed keys
+//
+// Example:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	fn := func(k string, v int) string {
+//		return k + "_key"
+//	}
+//	result := MapKeys(m, fn)
+//	// result will be map[string]int{"a_key": 1, "b_key": 2, "c_key": 3}
+func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1 {
+	return xiter.ToMap(xiter.Map2(func(k K, v V1) (K, V1) { return fn(k, v), v }, xiter.FromMapKeyAndValues(in)))
+}
