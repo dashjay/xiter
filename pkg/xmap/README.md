@@ -14,10 +14,15 @@ import "github.com/dashjay/xiter/pkg/xmap"
 - [func Equal\[M1, M2 \~map\[K\]V, K, V comparable\]\(m1 M1, m2 M2\) bool](<#Equal>)
 - [func EqualFunc\[M1 \~map\[K\]V1, M2 \~map\[K\]V2, K comparable, V1, V2 any\]\(m1 M1, m2 M2, eq func\(V1, V2\) bool\) bool](<#EqualFunc>)
 - [func Filter\[M \~map\[K\]V, K comparable, V any\]\(in M, fn func\(K, V\) bool\) M](<#Filter>)
+- [func Find\[K comparable, V any\]\(in map\[K\]V, fn func\(K, V\) bool\) \(K, V, bool\)](<#Find>)
+- [func FindKey\[K comparable, V any\]\(in map\[K\]V, target K\) \(K, V, bool\)](<#FindKey>)
+- [func FindKeyO\[K comparable, V any\]\(in map\[K\]V, target K\) optional.O\[union.U2\[K, V\]\]](<#FindKeyO>)
+- [func FindO\[K comparable, V any\]\(in map\[K\]V, fn func\(K, V\) bool\) optional.O\[union.U2\[K, V\]\]](<#FindO>)
 - [func Keys\[M \~map\[K\]V, K comparable, V any\]\(m M\) \[\]K](<#Keys>)
 - [func MapKeys\[K comparable, V1 any\]\(in map\[K\]V1, fn func\(K, V1\) K\) map\[K\]V1](<#MapKeys>)
 - [func MapValues\[K comparable, V1, V2 any\]\(in map\[K\]V1, fn func\(K, V1\) V2\) map\[K\]V2](<#MapValues>)
 - [func ToUnionSlice\[M \~map\[K\]V, K comparable, V any\]\(m M\) \[\]union.U2\[K, V\]](<#ToUnionSlice>)
+- [func ToXSyncMap\[K comparable, V any\]\(in map\[K\]V\) \*xsync.SyncMap\[K, V\]](<#ToXSyncMap>)
 - [func Values\[M \~map\[K\]V, K comparable, V any\]\(m M\) \[\]V](<#Values>)
 
 
@@ -31,7 +36,7 @@ func Clone[M ~map[K]V, K comparable, V any](m M) M
 
 
 <a name="CoalesceMaps"></a>
-## func [CoalesceMaps](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L31>)
+## func [CoalesceMaps](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L34>)
 
 ```go
 func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M
@@ -93,7 +98,7 @@ func EqualFunc[M1 ~map[K]V1, M2 ~map[K]V2, K comparable, V1, V2 any](m1 M1, m2 M
 
 
 <a name="Filter"></a>
-## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L48>)
+## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L51>)
 
 ```go
 func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M
@@ -110,6 +115,42 @@ result := Filter(m, fn)
 // result will be map[string]int{"b": 2, "c": 3}
 ```
 
+<a name="Find"></a>
+## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L137>)
+
+```go
+func Find[K comparable, V any](in map[K]V, fn func(K, V) bool) (K, V, bool)
+```
+
+
+
+<a name="FindKey"></a>
+## func [FindKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L120>)
+
+```go
+func FindKey[K comparable, V any](in map[K]V, target K) (K, V, bool)
+```
+
+
+
+<a name="FindKeyO"></a>
+## func [FindKeyO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L129>)
+
+```go
+func FindKeyO[K comparable, V any](in map[K]V, target K) optional.O[union.U2[K, V]]
+```
+
+
+
+<a name="FindO"></a>
+## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L148>)
+
+```go
+func FindO[K comparable, V any](in map[K]V, fn func(K, V) bool) optional.O[union.U2[K, V]]
+```
+
+
+
 <a name="Keys"></a>
 ## func [Keys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L29>)
 
@@ -120,7 +161,7 @@ func Keys[M ~map[K]V, K comparable, V any](m M) []K
 
 
 <a name="MapKeys"></a>
-## func [MapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L96>)
+## func [MapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L99>)
 
 ```go
 func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1
@@ -153,7 +194,7 @@ result := MapKeys(m, fn)
 ```
 
 <a name="MapValues"></a>
-## func [MapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L72>)
+## func [MapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L75>)
 
 ```go
 func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V2
@@ -193,6 +234,27 @@ func ToUnionSlice[M ~map[K]V, K comparable, V any](m M) []union.U2[K, V]
 ```
 
 
+
+<a name="ToXSyncMap"></a>
+## func [ToXSyncMap](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L112>)
+
+```go
+func ToXSyncMap[K comparable, V any](in map[K]V) *xsync.SyncMap[K, V]
+```
+
+ToXSyncMap converts a map to a xsync.SyncMap.
+
+Parameters:
+
+```
+in map[K]V: The input map to convert
+```
+
+Returns:
+
+```
+*xsync.SyncMap[K, V]: A new xsync.SyncMap containing the same key-value pairs as the input map
+```
 
 <a name="Values"></a>
 ## func [Values](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L33>)
