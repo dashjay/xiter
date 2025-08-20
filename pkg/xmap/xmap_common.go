@@ -1,6 +1,8 @@
 package xmap
 
 import (
+	"github.com/dashjay/xiter/pkg/optional"
+	"github.com/dashjay/xiter/pkg/union"
 	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/dashjay/xiter/pkg/xsync"
 )
@@ -113,4 +115,41 @@ func ToXSyncMap[K comparable, V any](in map[K]V) *xsync.SyncMap[K, V] {
 		m.Store(k, v)
 	}
 	return m
+}
+
+func FindKey[K comparable, V any](in map[K]V, target K) (K, V, bool) {
+	v, ok := in[target]
+	if ok {
+		return target, v, ok
+	}
+	var zero K
+	return zero, v, ok
+}
+
+func FindKeyO[K comparable, V any](in map[K]V, target K) optional.O[union.U2[K, V]] {
+	v, ok := in[target]
+	if ok {
+		return optional.FromValue(union.U2[K, V]{T1: target, T2: v})
+	}
+	return optional.Empty[union.U2[K, V]]()
+}
+
+func Find[K comparable, V any](in map[K]V, fn func(K, V) bool) (K, V, bool) {
+	for k, v := range in {
+		if fn(k, v) {
+			return k, v, true
+		}
+	}
+	var k K
+	var v V
+	return k, v, false
+}
+
+func FindO[K comparable, V any](in map[K]V, fn func(K, V) bool) optional.O[union.U2[K, V]] {
+	for k, v := range in {
+		if fn(k, v) {
+			return optional.FromValue(union.U2[K, V]{T1: k, T2: v})
+		}
+	}
+	return optional.Empty[union.U2[K, V]]()
 }
