@@ -2,6 +2,7 @@ package xmap
 
 import (
 	"github.com/dashjay/xiter/pkg/xiter"
+	"github.com/dashjay/xiter/pkg/xsync"
 )
 
 // CoalesceMaps combines multiple maps into a single map. When duplicate keys are encountered,
@@ -95,4 +96,21 @@ func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V
 //	// result will be map[string]int{"a_key": 1, "b_key": 2, "c_key": 3}
 func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1 {
 	return xiter.ToMap(xiter.Map2(func(k K, v V1) (K, V1) { return fn(k, v), v }, xiter.FromMapKeyAndValues(in)))
+}
+
+// ToXSyncMap converts a map to a xsync.SyncMap.
+//
+// Parameters:
+//
+//	in map[K]V: The input map to convert
+//
+// Returns:
+//
+//	*xsync.SyncMap[K, V]: A new xsync.SyncMap containing the same key-value pairs as the input map
+func ToXSyncMap[K comparable, V any](in map[K]V) *xsync.SyncMap[K, V] {
+	m := xsync.NewSyncMap[K, V]()
+	for k, v := range in {
+		m.Store(k, v)
+	}
+	return m
 }

@@ -132,7 +132,10 @@ func TestMap(t *testing.T) {
 		emptyMap := map[string]int{}
 		emptyResult := xmap.MapKeys(emptyMap, fn)
 		assert.Equal(t, map[string]int{}, emptyResult)
-		
 	})
 
+	t.Run("to xsync-map", func(t *testing.T) {
+		m := xmap.ToXSyncMap(_map(0, 100))
+		assert.Equal(t, 100, m.Len())
+	})
 }
