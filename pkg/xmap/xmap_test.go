@@ -132,7 +132,52 @@ func TestMap(t *testing.T) {
 		emptyMap := map[string]int{}
 		emptyResult := xmap.MapKeys(emptyMap, fn)
 		assert.Equal(t, map[string]int{}, emptyResult)
-		
 	})
 
+	t.Run("to xsync-map", func(t *testing.T) {
+		m := xmap.ToXSyncMap(_map(0, 100))
+		assert.Equal(t, 100, m.Len())
+	})
+
+	t.Run("xmap find", func(t *testing.T) {
+		k, _, ok := xmap.Find(_map(0, 100), func(k int, v string) bool {
+			return k == 50
+		})
+		assert.Equal(t, 50, k)
+		assert.True(t, ok)
+
+		res := xmap.FindO(_map(0, 100), func(k int, v string) bool {
+			return k == 50
+		})
+		assert.Equal(t, 50, res.Must().T1)
+		assert.True(t, res.Ok())
+
+		k, _, ok = xmap.FindKey(_map(0, 100), 50)
+		assert.Equal(t, 50, k)
+		assert.True(t, ok)
+
+		res = xmap.FindKeyO(_map(0, 100), 50)
+		assert.Equal(t, 50, res.Must().T1)
+		assert.True(t, res.Ok())
+
+		// can not find
+		k, _, ok = xmap.Find(_map(0, 100), func(k int, v string) bool {
+			return k == 100
+		})
+		assert.Equal(t, 0, k)
+		assert.False(t, ok)
+
+		res = xmap.FindO(_map(0, 100), func(k int, v string) bool {
+			return k == 100
+		})
+		assert.False(t, res.Ok())
+
+		k, _, ok = xmap.FindKey(_map(0, 100), 100)
+		assert.Equal(t, 0, k)
+		assert.False(t, ok)
+
+		res = xmap.FindKeyO(_map(0, 100), 100)
+		assert.False(t, res.Ok())
+
+	})
 }
