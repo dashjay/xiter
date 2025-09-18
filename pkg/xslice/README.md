@@ -30,6 +30,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func FindO\[T any\]\(in \[\]T, f func\(T\) bool\) optional.O\[T\]](<#FindO>)
 - [func First\[T any, Slice \~\[\]T\]\(in Slice\) \(T, bool\)](<#First>)
 - [func FirstO\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#FirstO>)
+- [func Flatten\[T any\]\(in \[\]\[\]T\) \[\]T](<#Flatten>)
 - [func ForEach\[T any\]\(in \[\]T, f func\(T\) bool\)](<#ForEach>)
 - [func ForEachIdx\[T any\]\(in \[\]T, f func\(idx int, v T\) bool\)](<#ForEachIdx>)
 - [func GroupBy\[T any, K comparable, Slice \~\[\]T\]\(in Slice, f func\(T\) K\) map\[K\]Slice](<#GroupBy>)
@@ -48,12 +49,15 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func Min\[T constraints.Ordered\]\(in \[\]T\) optional.O\[T\]](<#Min>)
 - [func MinBy\[T constraints.Ordered\]\(in \[\]T, f func\(T, T\) bool\) optional.O\[T\]](<#MinBy>)
 - [func MinN\[T constraints.Ordered\]\(in ...T\) optional.O\[T\]](<#MinN>)
+- [func RandomElement\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#RandomElement>)
+- [func Remove\[T comparable, Slice \~\[\]T\]\(in Slice, wantToRemove ...T\) Slice](<#Remove>)
 - [func Repeat\[T any, Slice \~\[\]T\]\(in Slice, count int\) Slice](<#Repeat>)
 - [func RepeatBy\[T any\]\(n int, f func\(i int\) T\) \[\]T](<#RepeatBy>)
 - [func Replace\[T comparable, Slice \~\[\]T\]\(in Slice, from, to T, count int\) \[\]T](<#Replace>)
 - [func ReplaceAll\[T comparable, Slice \~\[\]T\]\(in Slice, from, to T\) \[\]T](<#ReplaceAll>)
 - [func Reverse\[T any, Slice \~\[\]T\]\(in Slice\)](<#Reverse>)
 - [func ReverseClone\[T any, Slice \~\[\]T\]\(in Slice\) Slice](<#ReverseClone>)
+- [func Sample\[T any, Slice \~\[\]T\]\(in Slice, n int\) Slice](<#Sample>)
 - [func Shuffle\[T any, Slice \~\[\]T\]\(in Slice\) Slice](<#Shuffle>)
 - [func ShuffleInPlace\[T any, Slice \~\[\]T\]\(in Slice\)](<#ShuffleInPlace>)
 - [func Subset\[T any, Slice \~\[\]T\]\(in Slice, start, count int\) Slice](<#Subset>)
@@ -61,6 +65,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func Sum\[T constraints.Number, Slice \~\[\]T\]\(in Slice\) T](<#Sum>)
 - [func SumBy\[T any, R constraints.Number, Slice \~\[\]T\]\(in Slice, f func\(T\) R\) R](<#SumBy>)
 - [func SumN\[T constraints.Number\]\(in ...T\) T](<#SumN>)
+- [func ToMap\[T comparable, U any\]\(in \[\]T, f func\(T\) U\) map\[T\]U](<#ToMap>)
 - [func Union\[T comparable, Slice \~\[\]T\]\(left, right Slice\) Slice](<#Union>)
 - [func Uniq\[T comparable, Slice \~\[\]T\]\(in Slice\) Slice](<#Uniq>)
 
@@ -424,6 +429,24 @@ xslice.FirstO([]int{1, 2, 3}) 👉 1
 xslice.FirstO([]int{}) 👉 0
 ```
 
+<a name="Flatten"></a>
+## func [Flatten](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L708>)
+
+```go
+func Flatten[T any](in [][]T) []T
+```
+
+Flatten returns a new slice with all nested slices flattened into a single slice.
+
+EXAMPLE:
+
+```
+xslice.Flatten([][]int{{1, 2}, {3, 4}, {5}}) 👉 [1, 2, 3, 4, 5]
+xslice.Flatten([][]int{{1, 2}, {}, {3, 4}}) 👉 [1, 2, 3, 4]
+xslice.Flatten([][]int{}) 👉 []int{}
+xslice.Flatten([][]int{{}, {}, {}}) 👉 []int{}
+```
+
 <a name="ForEach"></a>
 ## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L157>)
 
@@ -715,6 +738,40 @@ EXAMPLE:
 xslice.MinN(1, 2, 3) 👉 1
 ```
 
+<a name="RandomElement"></a>
+## func [RandomElement](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L749>)
+
+```go
+func RandomElement[T any, Slice ~[]T](in Slice) optional.O[T]
+```
+
+RandomElement returns a random element from the slice as an optional.O\[T\]. If the slice is empty, it returns an optional.O\[T\] with Ok\(\) == false.
+
+EXAMPLE:
+
+```
+xslice.RandomElement([]int{1, 2, 3, 4, 5}) 👉 3 (random element)
+xslice.RandomElement([]int{42}) 👉 42 (always returns the only element)
+xslice.RandomElement([]int{}).Ok() 👉 false
+```
+
+<a name="Remove"></a>
+## func [Remove](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L687>)
+
+```go
+func Remove[T comparable, Slice ~[]T](in Slice, wantToRemove ...T) Slice
+```
+
+Remove returns a slice that remove all elements in wantToRemove
+
+EXAMPLE:
+
+```
+arr := []int{1, 2, 3, 4}
+arr1 := xslice.Remove(arr, 1)
+fmt.Println(arr1) // [2, 3, 4]
+```
+
 <a name="Repeat"></a>
 ## func [Repeat](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L409>)
 
@@ -810,6 +867,24 @@ EXAMPLE:
 xslice.ReverseClone([]int{1, 2, 3}) 👉 [3, 2, 1]
 xslice.ReverseClone([]int{}) 👉 []int{}
 xslice.ReverseClone([]int{3, 2, 1}) 👉 [1, 2, 3]
+```
+
+<a name="Sample"></a>
+## func [Sample](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L737>)
+
+```go
+func Sample[T any, Slice ~[]T](in Slice, n int) Slice
+```
+
+Sample returns a new slice with n randomly selected elements from the input slice. If n is greater than the length of the slice, it returns all elements in random order. If n is less than or equal to 0, it returns an empty slice.
+
+EXAMPLE:
+
+```
+xslice.Sample([]int{1, 2, 3, 4, 5}, 3) 👉 [3, 1, 5] (random order, 3 elements)
+xslice.Sample([]int{1, 2, 3}, 5) 👉 [2, 1, 3] (random order, all elements)
+xslice.Sample([]int{1, 2, 3}, 0) 👉 []int{}
+xslice.Sample([]int{}, 3) 👉 []int{}
 ```
 
 <a name="Shuffle"></a>
@@ -923,6 +998,24 @@ EXAMPLE:
 ```
 xslice.SumN(1, 2, 3) 👉 6
 xslice.SumN() 👉 0
+```
+
+<a name="ToMap"></a>
+## func [ToMap](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L721>)
+
+```go
+func ToMap[T comparable, U any](in []T, f func(T) U) map[T]U
+```
+
+ToMap returns a map where keys are elements from the slice and values are the result of applying f to each element. If there are duplicate keys in the slice, only the last element with that key will be present in the map.
+
+EXAMPLE:
+
+```
+xslice.ToMap([]string{"a", "b", "c"}, func(s string) int { return len(s) }) 👉 map[a:1 b:1 c:1]
+xslice.ToMap([]int{1, 2, 3}, func(i int) string { return fmt.Sprintf("num_%d", i) }) 👉 map[1:num_1 2:num_2 3:num_3]
+xslice.ToMap([]int{1, 2, 1, 3}, func(i int) string { return fmt.Sprintf("val_%d", i) }) 👉 map[1:val_1 2:val_2 3:val_3] (note: key 1 has "val_1" from the last occurrence)
+xslice.ToMap([]int{}, func(i int) string { return "" }) 👉 map[int]string{}
 ```
 
 <a name="Union"></a>
