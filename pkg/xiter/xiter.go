@@ -9,10 +9,9 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/dashjay/xiter/pkg/internal/utils"
-
 	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
+	"github.com/dashjay/xiter/pkg/internal/utils"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
 )
@@ -746,7 +745,7 @@ func Max[T constraints.Ordered](seq Seq[T]) (r optional.O[T]) {
 }
 
 // MaxBy return the maximum element in seq, evaluated by f.
-func MaxBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.O[T]) {
+func MaxBy[T any](seq Seq[T], less func(T, T) bool) (r optional.O[T]) {
 	first := true
 	var _max T
 	for v := range seq {
@@ -782,7 +781,7 @@ func Min[T constraints.Ordered](seq Seq[T]) (r optional.O[T]) {
 }
 
 // MinBy return the minimum element in seq, evaluated by f.
-func MinBy[T constraints.Ordered](seq Seq[T], less func(T, T) bool) (r optional.O[T]) {
+func MinBy[T any](seq Seq[T], less func(T, T) bool) (r optional.O[T]) {
 	first := true
 	var _min T
 	for v := range seq {

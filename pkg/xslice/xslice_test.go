@@ -1,6 +1,7 @@
 package xslice_test
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"testing"
@@ -363,5 +364,128 @@ func TestSlices(t *testing.T) {
 		res := xslice.Union(left, right)
 		sort.Sort(sort.IntSlice(res))
 		assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7, 8}, res)
+		res = xslice.Union(right, left)
+		sort.Sort(sort.IntSlice(res))
+		assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7, 8}, res)
 	})
+
+	t.Run("remove", func(t *testing.T) {
+		arr := []int{1, 2, 3, 4, 5, 6}
+		arr1 := xslice.Remove(arr, 1)
+		assert.Equal(t, []int{2, 3, 4, 5, 6}, arr1)
+		arr2 := xslice.Remove(_range(1, 100), _range(1, 50)...)
+		assert.Equal(t, _range(50, 100), arr2)
+
+		arr3 := xslice.Remove(_range(1, 100))
+		assert.Equal(t, _range(1, 100), arr3)
+	})
+
+	t.Run("flatten", func(t *testing.T) {
+		res := xslice.Flatten(append([][]int{}, _range(1, 100), _range(100, 200)))
+		assert.Equal(t, _range(1, 200), res)
+
+		res = xslice.Flatten(xslice.Chunk(_range(1, 1000), 10))
+		assert.Equal(t, _range(1, 1000), res)
+	})
+
+	t.Run("to map", func(t *testing.T) {
+		// Test basic string to int mapping
+		result := xslice.ToMap([]string{"a", "bb", "ccc"}, func(s string) int { return len(s) })
+		expected := map[string]int{"a": 1, "bb": 2, "ccc": 3}
+		assert.Equal(t, expected, result)
+
+		// Test int to string mapping
+		result2 := xslice.ToMap([]int{1, 2, 3}, func(i int) string {
+			return strconv.Itoa(i * 10)
+		})
+		expected2 := map[int]string{1: "10", 2: "20", 3: "30"}
+		assert.Equal(t, expected2, result2)
+
+		// Test duplicate keys - last one should win
+		result3 := xslice.ToMap([]int{1, 2, 1, 3}, func(i int) string {
+			return fmt.Sprintf("val_%d", i)
+		})
+		expected3 := map[int]string{1: "val_1", 2: "val_2", 3: "val_3"}
+		assert.Equal(t, expected3, result3)
+
+		// Test empty slice
+		result4 := xslice.ToMap([]int{}, func(i int) string { return "" })
+		expected4 := map[int]string{}
+		assert.Equal(t, expected4, result4)
+
+		// Test with struct transformation
+		type Person struct {
+			Name string
+			Age  int
+		}
+		people := []Person{
+			{Name: "Alice", Age: 30},
+			{Name: "Bob", Age: 25},
+			{Name: "Charlie", Age: 35},
+		}
+		result5 := xslice.ToMap(people, func(p Person) int { return p.Age })
+		expected5 := map[Person]int{
+			{Name: "Alice", Age: 30}:   30,
+			{Name: "Bob", Age: 25}:     25,
+			{Name: "Charlie", Age: 35}: 35,
+		}
+		assert.Equal(t, expected5, result5)
+	})
+
+	t.Run("sample", func(t *testing.T) {
+		// Test basic sampling
+		source := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		sample := xslice.Sample(source, 3)
+
+		// Should have exactly 3 elements
+		assert.Len(t, sample, 3)
+
+		// All elements should be from the original slice
+		for _, elem := range sample {
+			assert.Contains(t, source, elem)
+		}
+
+		// Test sampling more elements than available (should return all in random order)
+		sample2 := xslice.Sample(source, 15)
+		assert.Len(t, sample2, 10) // Should return all elements
+
+		// Test with n = 0 (should return empty)
+		sample3 := xslice.Sample(source, 0)
+		assert.Len(t, sample3, 0)
+
+		// Test with empty slice
+		sample4 := xslice.Sample([]int{}, 3)
+		assert.Len(t, sample4, 0)
+
+		// Test with single element
+		sample5 := xslice.Sample([]int{42}, 1)
+		assert.Len(t, sample5, 1)
+		assert.Equal(t, 42, sample5[0])
+	})
+
+	t.Run("random element", func(t *testing.T) {
+		// Test with non-empty slice
+		source := []int{1, 2, 3, 4, 5}
+		elem := xslice.RandomElement(source)
+		assert.True(t, elem.Ok())
+		assert.Contains(t, source, elem.Must())
+
+		// Test with single element (should always return that element)
+		single := []int{42}
+		elem2 := xslice.RandomElement(single)
+		assert.True(t, elem2.Ok())
+		assert.Equal(t, 42, elem2.Must())
+
+		// Test with empty slice
+		empty := []int{}
+		elem3 := xslice.RandomElement(empty)
+		assert.False(t, elem3.Ok())
+
+		// Test with string slice
+		strings := []string{"hello", "world", "test"}
+		elem4 := xslice.RandomElement(strings)
+		assert.True(t, elem4.Ok())
+		assert.Contains(t, strings, elem4.Must())
+	})
+
 }

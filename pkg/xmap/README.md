@@ -11,6 +11,8 @@ import "github.com/dashjay/xiter/pkg/xmap"
 - [func Clone\[M \~map\[K\]V, K comparable, V any\]\(m M\) M](<#Clone>)
 - [func CoalesceMaps\[M \~map\[K\]V, K comparable, V any\]\(maps ...M\) M](<#CoalesceMaps>)
 - [func Copy\[M1 \~map\[K\]V, M2 \~map\[K\]V, K comparable, V any\]\(dst M1, src M2\)](<#Copy>)
+- [func Delete\[K comparable, V any\]\(m map\[K\]V, k K\) \(old V, deleted bool\)](<#Delete>)
+- [func DeleteIf\[K comparable, V any\]\(m map\[K\]V, k K, c func\(K, V\) bool\) \(old V, deleted bool\)](<#DeleteIf>)
 - [func Equal\[M1, M2 \~map\[K\]V, K, V comparable\]\(m1 M1, m2 M2\) bool](<#Equal>)
 - [func EqualFunc\[M1 \~map\[K\]V1, M2 \~map\[K\]V2, K comparable, V1, V2 any\]\(m1 M1, m2 M2, eq func\(V1, V2\) bool\) bool](<#EqualFunc>)
 - [func Filter\[M \~map\[K\]V, K comparable, V any\]\(in M, fn func\(K, V\) bool\) M](<#Filter>)
@@ -21,8 +23,14 @@ import "github.com/dashjay/xiter/pkg/xmap"
 - [func Keys\[M \~map\[K\]V, K comparable, V any\]\(m M\) \[\]K](<#Keys>)
 - [func MapKeys\[K comparable, V1 any\]\(in map\[K\]V1, fn func\(K, V1\) K\) map\[K\]V1](<#MapKeys>)
 - [func MapValues\[K comparable, V1, V2 any\]\(in map\[K\]V1, fn func\(K, V1\) V2\) map\[K\]V2](<#MapValues>)
+- [func MaxKey\[K constraints.Ordered, V any\]\(m map\[K\]V\) optional.O\[union.U2\[K, V\]\]](<#MaxKey>)
+- [func MaxValue\[K comparable, V constraints.Ordered\]\(m map\[K\]V\) optional.O\[union.U2\[K, V\]\]](<#MaxValue>)
+- [func MinKey\[K constraints.Ordered, V any\]\(m map\[K\]V\) optional.O\[union.U2\[K, V\]\]](<#MinKey>)
+- [func MinValue\[K comparable, V constraints.Ordered\]\(m map\[K\]V\) optional.O\[union.U2\[K, V\]\]](<#MinValue>)
 - [func ToUnionSlice\[M \~map\[K\]V, K comparable, V any\]\(m M\) \[\]union.U2\[K, V\]](<#ToUnionSlice>)
 - [func ToXSyncMap\[K comparable, V any\]\(in map\[K\]V\) \*xsync.SyncMap\[K, V\]](<#ToXSyncMap>)
+- [func Update\[K comparable, V any\]\(m map\[K\]V, k K, v V\) \(old V, replaced bool\)](<#Update>)
+- [func UpdateIf\[K comparable, V any\]\(m map\[K\]V, k K, v V, c func\(K, V\) bool\) \(old V, replaced bool\)](<#UpdateIf>)
 - [func Values\[M \~map\[K\]V, K comparable, V any\]\(m M\) \[\]V](<#Values>)
 
 
@@ -36,7 +44,7 @@ func Clone[M ~map[K]V, K comparable, V any](m M) M
 
 
 <a name="CoalesceMaps"></a>
-## func [CoalesceMaps](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L34>)
+## func [CoalesceMaps](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L35>)
 
 ```go
 func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M
@@ -79,6 +87,46 @@ func Copy[M1 ~map[K]V, M2 ~map[K]V, K comparable, V any](dst M1, src M2)
 
 
 
+<a name="Delete"></a>
+## func [Delete](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L256>)
+
+```go
+func Delete[K comparable, V any](m map[K]V, k K) (old V, deleted bool)
+```
+
+Delete removes a key from the map and returns the old value and whether it was deleted. If the key exists, it removes the key\-value pair and returns the old value with deleted=true. If the key doesn't exist, it returns the zero value with deleted=false.
+
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2}
+old, deleted := xmap.Delete(m, "b")
+// old=2, deleted=true, m is now {"a": 1}
+old, deleted = xmap.Delete(m, "c")
+// old=0, deleted=false, m remains {"a": 1}
+```
+
+<a name="DeleteIf"></a>
+## func [DeleteIf](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L276>)
+
+```go
+func DeleteIf[K comparable, V any](m map[K]V, k K, c func(K, V) bool) (old V, deleted bool)
+```
+
+DeleteIf removes a key from the map only if the condition function returns true. It returns the old value and whether it was deleted. If the key exists and the condition is true, it removes the key\-value pair and returns the old value with deleted=true. Otherwise, it returns the zero value with deleted=false.
+
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2}
+old, deleted := xmap.DeleteIf(m, "b", func(k string, v int) bool { return v > 1 })
+// old=2, deleted=true, m is now {"a": 1}
+old, deleted = xmap.DeleteIf(m, "b", func(k string, v int) bool { return v > 10 })
+// old=0, deleted=false, m remains {"a": 1}
+old, deleted = xmap.DeleteIf(m, "c", func(k string, v int) bool { return v > 0 })
+// old=0, deleted=false (key doesn't exist), m remains {"a": 1}
+```
+
 <a name="Equal"></a>
 ## func [Equal](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L17>)
 
@@ -98,7 +146,7 @@ func EqualFunc[M1 ~map[K]V1, M2 ~map[K]V2, K comparable, V1, V2 any](m1 M1, m2 M
 
 
 <a name="Filter"></a>
-## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L51>)
+## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L52>)
 
 ```go
 func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M
@@ -116,40 +164,84 @@ result := Filter(m, fn)
 ```
 
 <a name="Find"></a>
-## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L137>)
+## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L175>)
 
 ```go
 func Find[K comparable, V any](in map[K]V, fn func(K, V) bool) (K, V, bool)
 ```
 
+Find searches for the first key\-value pair in the map that satisfies the given condition function. It returns the key, value, and whether such a pair was found. The search order is not guaranteed to be consistent due to the nature of Go's map iteration. If no pair satisfies the condition, it returns the zero key, zero value, and false.
 
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2, "c": 3}
+key, value, found := xmap.Find(m, func(k string, v int) bool { return v > 1 })
+// key could be "b" or "c", value=2 or 3, found=true (first match found)
+key, value, found = xmap.Find(m, func(k string, v int) bool { return v > 10 })
+// key="", value=0, found=false
+```
 
 <a name="FindKey"></a>
-## func [FindKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L120>)
+## func [FindKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L133>)
 
 ```go
 func FindKey[K comparable, V any](in map[K]V, target K) (K, V, bool)
 ```
 
+FindKey finds a key in the map and returns the key, its value, and whether it was found. This is essentially a wrapper around the built\-in map lookup that returns the key along with the value. If the key exists, it returns the key, its value, and true. If the key doesn't exist, it returns the zero key, zero value, and false.
 
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2}
+key, value, found := xmap.FindKey(m, "b")
+// key="b", value=2, found=true
+key, value, found = xmap.FindKey(m, "c")
+// key="", value=0, found=false
+```
 
 <a name="FindKeyO"></a>
-## func [FindKeyO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L129>)
+## func [FindKeyO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L155>)
 
 ```go
 func FindKeyO[K comparable, V any](in map[K]V, target K) optional.O[union.U2[K, V]]
 ```
 
+FindKeyO finds a key in the map and returns the key\-value pair as an optional.O\[union.U2\[K, V\]\]. If the key exists, it returns an optional containing a union.U2 with the key in T1 and value in T2. If the key doesn't exist, it returns an empty optional.
 
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2}
+result := xmap.FindKeyO(m, "b")
+// result.Ok() == true, result.Must() contains union.U2[string, int]{T1: "b", T2: 2}
+key := result.Must().T1 // "b"
+value := result.Must().T2 // 2
+result2 := xmap.FindKeyO(m, "c")
+// result2.Ok() == false
+```
 
 <a name="FindO"></a>
-## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L148>)
+## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L196>)
 
 ```go
 func FindO[K comparable, V any](in map[K]V, fn func(K, V) bool) optional.O[union.U2[K, V]]
 ```
 
+FindO searches for the first key\-value pair in the map that satisfies the given condition function. It returns the key\-value pair as an optional.O\[union.U2\[K, V\]\]. The search order is not guaranteed to be consistent due to the nature of Go's map iteration. If a pair satisfies the condition, it returns an optional containing a union.U2 with the key in T1 and value in T2. If no pair satisfies the condition, it returns an empty optional.
 
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2, "c": 3}
+result := xmap.FindO(m, func(k string, v int) bool { return v > 1 })
+// result.Ok() == true, result.Must() contains union.U2[string, int] with key and value of first match
+key := result.Must().T1 // could be "b" or "c"
+value := result.Must().T2 // could be 2 or 3
+result2 := xmap.FindO(m, func(k string, v int) bool { return v > 10 })
+// result2.Ok() == false
+```
 
 <a name="Keys"></a>
 ## func [Keys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L29>)
@@ -161,7 +253,7 @@ func Keys[M ~map[K]V, K comparable, V any](m M) []K
 
 
 <a name="MapKeys"></a>
-## func [MapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L99>)
+## func [MapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L100>)
 
 ```go
 func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1
@@ -194,7 +286,7 @@ result := MapKeys(m, fn)
 ```
 
 <a name="MapValues"></a>
-## func [MapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L75>)
+## func [MapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L76>)
 
 ```go
 func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V2
@@ -226,6 +318,90 @@ result := MapValues(m, fn)
 // result will be map[string]string{"a": "value_1", "b": "value_2", "c": "value_3"}
 ```
 
+<a name="MaxKey"></a>
+## func [MaxKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L298>)
+
+```go
+func MaxKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]]
+```
+
+MaxKey returns the maximum key in the map and its associated value as an optional.O\[union.U2\[K, V\]\]. If the map is empty, it returns an optional.O\[union.U2\[K, V\]\] with Ok\(\) == false. The returned union.U2 contains the key in T1 and the value in T2.
+
+EXAMPLE:
+
+```
+m := map[string]int{"b": 2, "a": 1, "c": 3}
+result := xmap.MaxKey(m)
+// result contains union.U2[string, int]{T1: "c", T2: 3}
+maxKey := result.Must().T1 // "c"
+maxValue := result.Must().T2 // 3
+result2 := xmap.MaxKey(map[string]int{})
+// result2.Ok() == false
+```
+
+<a name="MaxValue"></a>
+## func [MaxValue](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L340>)
+
+```go
+func MaxValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]]
+```
+
+MaxValue returns the maximum value in the map and its associated key as an optional.O\[union.U2\[K, V\]\]. If the map is empty, it returns an optional.O\[union.U2\[K, V\]\] with Ok\(\) == false. The returned union.U2 contains the key in T1 and the maximum value in T2.
+
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 3, "c": 2}
+result := xmap.MaxValue(m)
+// result contains union.U2[string, int]{T1: "b", T2: 3}
+maxKey := result.Must().T1 // "b"
+maxValue := result.Must().T2 // 3
+result2 := xmap.MaxValue(map[string]int{})
+// result2.Ok() == false
+```
+
+<a name="MinKey"></a>
+## func [MinKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L319>)
+
+```go
+func MinKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]]
+```
+
+MinKey returns the minimum key in the map and its associated value as an optional.O\[union.U2\[K, V\]\]. If the map is empty, it returns an optional.O\[union.U2\[K, V\]\] with Ok\(\) == false. The returned union.U2 contains the key in T1 and the value in T2.
+
+EXAMPLE:
+
+```
+m := map[string]int{"b": 2, "a": 1, "c": 3}
+result := xmap.MinKey(m)
+// result contains union.U2[string, int]{T1: "a", T2: 1}
+minKey := result.Must().T1 // "a"
+minValue := result.Must().T2 // 1
+result2 := xmap.MinKey(map[string]int{})
+// result2.Ok() == false
+```
+
+<a name="MinValue"></a>
+## func [MinValue](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L360>)
+
+```go
+func MinValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]]
+```
+
+MinValue returns the minimum value in the map and its associated key as an optional.O\[union.U2\[K, V\]\]. If the map is empty, it returns an optional.O\[union.U2\[K, V\]\] with Ok\(\) == false. The returned union.U2 contains the key in T1 and the minimum value in T2.
+
+EXAMPLE:
+
+```
+m := map[string]int{"a": 3, "b": 1, "c": 2}
+result := xmap.MinValue(m)
+// result contains union.U2[string, int]{T1: "b", T2: 1}
+minKey := result.Must().T1 // "b"
+minValue := result.Must().T2 // 1
+result2 := xmap.MinValue(map[string]int{})
+// result2.Ok() == false
+```
+
 <a name="ToUnionSlice"></a>
 ## func [ToUnionSlice](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L37>)
 
@@ -236,7 +412,7 @@ func ToUnionSlice[M ~map[K]V, K comparable, V any](m M) []union.U2[K, V]
 
 
 <a name="ToXSyncMap"></a>
-## func [ToXSyncMap](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L112>)
+## func [ToXSyncMap](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L113>)
 
 ```go
 func ToXSyncMap[K comparable, V any](in map[K]V) *xsync.SyncMap[K, V]
@@ -254,6 +430,46 @@ Returns:
 
 ```
 *xsync.SyncMap[K, V]: A new xsync.SyncMap containing the same key-value pairs as the input map
+```
+
+<a name="Update"></a>
+## func [Update](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L216>)
+
+```go
+func Update[K comparable, V any](m map[K]V, k K, v V) (old V, replaced bool)
+```
+
+Update updates the value for a key in the map and returns the old value and whether it was replaced. If the key exists, it updates the value and returns the old value with replaced=true. If the key doesn't exist, it adds the key\-value pair and returns the zero value with replaced=false.
+
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2}
+old, replaced := xmap.Update(m, "b", 20)
+// old=2, replaced=true, m is now {"a": 1, "b": 20}
+old, replaced = xmap.Update(m, "c", 3)
+// old=0, replaced=false, m is now {"a": 1, "b": 20, "c": 3}
+```
+
+<a name="UpdateIf"></a>
+## func [UpdateIf](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L236>)
+
+```go
+func UpdateIf[K comparable, V any](m map[K]V, k K, v V, c func(K, V) bool) (old V, replaced bool)
+```
+
+UpdateIf updates the value for a key in the map only if the condition function returns true. It returns the old value and whether it was replaced. If the key exists and the condition is true, it updates the value and returns the old value with replaced=true. Otherwise, it returns the zero value with replaced=false.
+
+EXAMPLE:
+
+```
+m := map[string]int{"a": 1, "b": 2}
+old, replaced := xmap.UpdateIf(m, "b", 20, func(k string, v int) bool { return v > 1 })
+// old=2, replaced=true, m is now {"a": 1, "b": 20}
+old, replaced = xmap.UpdateIf(m, "b", 200, func(k string, v int) bool { return v > 50 })
+// old=0, replaced=false, m remains {"a": 1, "b": 20}
+old, replaced = xmap.UpdateIf(m, "c", 3, func(k string, v int) bool { return v > 0 })
+// old=0, replaced=false (key doesn't exist), m remains {"a": 1, "b": 20}
 ```
 
 <a name="Values"></a>
