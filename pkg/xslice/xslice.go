@@ -676,3 +676,76 @@ func Union[T comparable, Slice ~[]T](left, right Slice) Slice {
 	}
 	return xiter.ToSlice(xiter.Union(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
 }
+
+// Remove returns a slice that remove all elements in wantToRemove
+//
+// EXAMPLE:
+//
+//	arr := []int{1, 2, 3, 4}
+//	arr1 := xslice.Remove(arr, 1)
+//	fmt.Println(arr1) // [2, 3, 4]
+func Remove[T comparable, Slice ~[]T](in Slice, wantToRemove ...T) Slice {
+	seq := xiter.FromSlice(wantToRemove)
+	return xiter.ToSlice(xiter.Filter(func(v T) bool {
+		if len(wantToRemove) == 0 {
+			return true
+		}
+		if len(wantToRemove) == 1 {
+			return wantToRemove[0] != v
+		}
+		return !xiter.Contains(seq, v)
+	}, xiter.FromSlice(in)))
+}
+
+// Flatten returns a new slice with all nested slices flattened into a single slice.
+//
+// EXAMPLE:
+//
+//	xslice.Flatten([][]int{{1, 2}, {3, 4}, {5}}) 👉 [1, 2, 3, 4, 5]
+//	xslice.Flatten([][]int{{1, 2}, {}, {3, 4}}) 👉 [1, 2, 3, 4]
+//	xslice.Flatten([][]int{}) 👉 []int{}
+//	xslice.Flatten([][]int{{}, {}, {}}) 👉 []int{}
+func Flatten[T any](in [][]T) []T {
+	return Concat(in...)
+}
+
+// ToMap returns a map where keys are elements from the slice and values are the result of applying f to each element.
+// If there are duplicate keys in the slice, only the last element with that key will be present in the map.
+//
+// EXAMPLE:
+//
+//	xslice.ToMap([]string{"a", "b", "c"}, func(s string) int { return len(s) }) 👉 map[a:1 b:1 c:1]
+//	xslice.ToMap([]int{1, 2, 3}, func(i int) string { return fmt.Sprintf("num_%d", i) }) 👉 map[1:num_1 2:num_2 3:num_3]
+//	xslice.ToMap([]int{1, 2, 1, 3}, func(i int) string { return fmt.Sprintf("val_%d", i) }) 👉 map[1:val_1 2:val_2 3:val_3] (note: key 1 has "val_1" from the last occurrence)
+//	xslice.ToMap([]int{}, func(i int) string { return "" }) 👉 map[int]string{}
+func ToMap[T comparable, U any](in []T, f func(T) U) map[T]U {
+	return xiter.ToMap(xiter.Map2(func(idx int, in T) (T, U) {
+		return in, f(in)
+	}, xiter.FromSliceIdx(in)))
+}
+
+// Sample returns a new slice with n randomly selected elements from the input slice.
+// If n is greater than the length of the slice, it returns all elements in random order.
+// If n is less than or equal to 0, it returns an empty slice.
+//
+// EXAMPLE:
+//
+//	xslice.Sample([]int{1, 2, 3, 4, 5}, 3) 👉 [3, 1, 5] (random order, 3 elements)
+//	xslice.Sample([]int{1, 2, 3}, 5) 👉 [2, 1, 3] (random order, all elements)
+//	xslice.Sample([]int{1, 2, 3}, 0) 👉 []int{}
+//	xslice.Sample([]int{}, 3) 👉 []int{}
+func Sample[T any, Slice ~[]T](in Slice, n int) Slice {
+	return xiter.ToSlice(xiter.Limit(xiter.FromSliceShuffle(in), n))
+}
+
+// RandomElement returns a random element from the slice as an optional.O[T].
+// If the slice is empty, it returns an optional.O[T] with Ok() == false.
+//
+// EXAMPLE:
+//
+//	xslice.RandomElement([]int{1, 2, 3, 4, 5}) 👉 3 (random element)
+//	xslice.RandomElement([]int{42}) 👉 42 (always returns the only element)
+//	xslice.RandomElement([]int{}).Ok() 👉 false
+func RandomElement[T any, Slice ~[]T](in Slice) optional.O[T] {
+	return xiter.FirstO(xiter.FromSliceShuffle(in))
+}
