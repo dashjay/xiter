@@ -6,9 +6,9 @@
 //go:build !go1.23
 // +build !go1.23
 
-// Package cmp provides types and functions related to comparing
+// Package xcmp provides types and functions related to comparing
 // ordered values.
-package cmp
+package xcmp
 
 // Ordered is a constraint that permits any ordered type: any type
 // that supports the operators < <= >= >.

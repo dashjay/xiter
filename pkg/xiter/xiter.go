@@ -9,11 +9,11 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/internal/utils"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
+	"github.com/dashjay/xiter/pkg/xcmp"
 )
 
 // Seq is a sequence of elements provided by an iterator-like function.
@@ -250,8 +250,8 @@ func Map2[KIn, VIn, KOut, VOut any](
 //
 // Merge is equivalent to calling MergeFunc with cmp.Compare[V]
 // as the ordering function.
-func Merge[V cmp.Ordered](x, y Seq[V]) Seq[V] {
-	return MergeFunc(x, y, cmp.Compare[V])
+func Merge[V xcmp.Ordered](x, y Seq[V]) Seq[V] {
+	return MergeFunc(x, y, xcmp.Compare[V])
 }
 
 // MergeFunc merges two sequences of values ordered by the function f.
@@ -296,8 +296,8 @@ func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V] {
 //
 // Merge2 is equivalent to calling MergeFunc2 with cmp.Compare[K]
 // as the ordering function.
-func Merge2[K cmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V] {
-	return MergeFunc2(x, y, cmp.Compare[K])
+func Merge2[K xcmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V] {
+	return MergeFunc2(x, y, xcmp.Compare[K])
 }
 
 // MergeFunc2 merges two sequences of key-value pairs ordered by the function f.

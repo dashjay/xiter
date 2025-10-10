@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dashjay/xiter/pkg/cmp"
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/internal/utils"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
+	"github.com/dashjay/xiter/pkg/xcmp"
 )
 
 type Seq[V any] func(yield func(V) bool)
@@ -177,8 +177,8 @@ func Map2[KIn, VIn, KOut, VOut any](f func(KIn, VIn) (KOut, VOut), seq Seq2[KIn,
 	}
 }
 
-func Merge[V cmp.Ordered](x, y Seq[V]) Seq[V] {
-	return MergeFunc(x, y, cmp.Compare[V])
+func Merge[V xcmp.Ordered](x, y Seq[V]) Seq[V] {
+	return MergeFunc(x, y, xcmp.Compare[V])
 }
 
 func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V] {
@@ -207,8 +207,8 @@ func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V] {
 	}
 }
 
-func Merge2[K cmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V] {
-	return MergeFunc2(x, y, cmp.Compare[K])
+func Merge2[K xcmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V] {
+	return MergeFunc2(x, y, xcmp.Compare[K])
 }
 
 func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V] {

@@ -72,7 +72,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func Intersect\[T comparable\]\(left Seq\[T\], right Seq\[T\]\) Seq\[T\]](<#Intersect>)
   - [func Limit\[V any\]\(seq Seq\[V\], n int\) Seq\[V\]](<#Limit>)
   - [func Map\[In, Out any\]\(f func\(In\) Out, seq Seq\[In\]\) Seq\[Out\]](<#Map>)
-  - [func Merge\[V cmp.Ordered\]\(x, y Seq\[V\]\) Seq\[V\]](<#Merge>)
+  - [func Merge\[V xcmp.Ordered\]\(x, y Seq\[V\]\) Seq\[V\]](<#Merge>)
   - [func MergeFunc\[V any\]\(x, y Seq\[V\], f func\(V, V\) int\) Seq\[V\]](<#MergeFunc>)
   - [func Repeat\[T any\]\(seq Seq\[T\], count int\) Seq\[T\]](<#Repeat>)
   - [func Replace\[T comparable\]\(seq Seq\[T\], from, to T, n int\) Seq\[T\]](<#Replace>)
@@ -95,7 +95,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func Map2\[KIn, VIn, KOut, VOut any\]\(f func\(KIn, VIn\) \(KOut, VOut\), seq Seq2\[KIn, VIn\]\) Seq2\[KOut, VOut\]](<#Map2>)
   - [func MapToSeq2\[T any, K comparable\]\(in Seq\[T\], mapFn func\(ele T\) K\) Seq2\[K, T\]](<#MapToSeq2>)
   - [func MapToSeq2Value\[T any, K comparable, V any\]\(in Seq\[T\], mapFn func\(ele T\) \(K, V\)\) Seq2\[K, V\]](<#MapToSeq2Value>)
-  - [func Merge2\[K cmp.Ordered, V any\]\(x, y Seq2\[K, V\]\) Seq2\[K, V\]](<#Merge2>)
+  - [func Merge2\[K xcmp.Ordered, V any\]\(x, y Seq2\[K, V\]\) Seq2\[K, V\]](<#Merge2>)
   - [func MergeFunc2\[K, V any\]\(x, y Seq2\[K, V\], f func\(K, K\) int\) Seq2\[K, V\]](<#MergeFunc2>)
 - [type Zipped](<#Zipped>)
 - [type Zipped2](<#Zipped2>)
@@ -1137,7 +1137,7 @@ func main() {
 ### func [Merge](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L253>)
 
 ```go
-func Merge[V cmp.Ordered](x, y Seq[V]) Seq[V]
+func Merge[V xcmp.Ordered](x, y Seq[V]) Seq[V]
 ```
 
 Merge merges two sequences of ordered values. Values appear in the output once for each time they appear in x and once for each time they appear in y. If the two input sequences are not ordered, the output sequence will not be ordered, but it will still contain every value from x and y exactly once.
@@ -1504,7 +1504,7 @@ fmt.Println(ToMap(transformed))
 ### func [Merge2](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L299>)
 
 ```go
-func Merge2[K cmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V]
+func Merge2[K xcmp.Ordered, V any](x, y Seq2[K, V]) Seq2[K, V]
 ```
 
 Merge2 merges two sequences of key\-value pairs ordered by their keys. Pairs appear in the output once for each time they appear in x and once for each time they appear in y. If the two input sequences are not ordered by their keys, the output sequence will not be ordered by its keys, but it will still contain every pair from x and y exactly once.
