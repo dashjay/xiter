@@ -15,7 +15,7 @@ import "github.com/dashjay/xiter/pkg/xcmp"
 
 
 <a name="Compare"></a>
-## func [Compare](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/cmp.go#L14>)
+## func [Compare](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/xcmp.go#L14>)
 
 ```go
 func Compare[T Ordered](x, y T) int
@@ -29,15 +29,21 @@ func Compare[T Ordered](x, y T) int
 
 
 ```go
-fmt.Println(xcmp.Compare(1, 2))
-fmt.Println(xcmp.Compare("a", "aa"))
-fmt.Println(xcmp.Compare(1.5, 1.5))
-fmt.Println(xcmp.Compare(math.NaN(), 1.0))
-// Output:
-// -1
-// -1
-// 0
-// -1
+package main
+
+import (
+	"fmt"
+	"math"
+
+	"github.com/dashjay/xiter/pkg/xcmp"
+)
+
+func main() {
+	fmt.Println(xcmp.Compare(1, 2))
+	fmt.Println(xcmp.Compare("a", "aa"))
+	fmt.Println(xcmp.Compare(1.5, 1.5))
+	fmt.Println(xcmp.Compare(math.NaN(), 1.0))
+}
 ```
 
 #### Output
@@ -53,7 +59,7 @@ fmt.Println(xcmp.Compare(math.NaN(), 1.0))
 </details>
 
 <a name="Less"></a>
-## func [Less](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/cmp.go#L10>)
+## func [Less](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/xcmp.go#L10>)
 
 ```go
 func Less[T Ordered](x, y T) bool
@@ -67,15 +73,21 @@ func Less[T Ordered](x, y T) bool
 
 
 ```go
-fmt.Println(xcmp.Less(1, 2))
-fmt.Println(xcmp.Less("a", "aa"))
-fmt.Println(xcmp.Less(1.0, math.NaN()))
-fmt.Println(xcmp.Less(math.NaN(), 1.0))
-// Output:
-// true
-// true
-// false
-// true
+package main
+
+import (
+	"fmt"
+	"math"
+
+	"github.com/dashjay/xiter/pkg/xcmp"
+)
+
+func main() {
+	fmt.Println(xcmp.Less(1, 2))
+	fmt.Println(xcmp.Less("a", "aa"))
+	fmt.Println(xcmp.Less(1.0, math.NaN()))
+	fmt.Println(xcmp.Less(math.NaN(), 1.0))
+}
 ```
 
 #### Output
@@ -91,7 +103,7 @@ true
 </details>
 
 <a name="Or"></a>
-## func [Or](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/cmp.go#L18>)
+## func [Or](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/xcmp.go#L18>)
 
 ```go
 func Or[T comparable](vals ...T) T
@@ -105,18 +117,24 @@ func Or[T comparable](vals ...T) T
 
 
 ```go
-// Suppose we have some user input
-// that may or may not be an empty string
-userInput1 := ""
-userInput2 := "some text"
+package main
 
-fmt.Println(xcmp.Or(userInput1, "default"))
-fmt.Println(xcmp.Or(userInput2, "default"))
-fmt.Println(xcmp.Or(userInput1, userInput2, "default"))
-// Output:
-// default
-// some text
-// some text
+import (
+	"fmt"
+
+	"github.com/dashjay/xiter/pkg/xcmp"
+)
+
+func main() {
+	// Suppose we have some user input
+	// that may or may not be an empty string
+	userInput1 := ""
+	userInput2 := "some text"
+
+	fmt.Println(xcmp.Or(userInput1, "default"))
+	fmt.Println(xcmp.Or(userInput2, "default"))
+	fmt.Println(xcmp.Or(userInput1, userInput2, "default"))
+}
 ```
 
 #### Output
@@ -136,36 +154,68 @@ some text
 
 
 ```go
-orders := []Order{
-	{"foo", "alice", 1.00},
-	{"bar", "bob", 3.00},
-	{"baz", "carol", 4.00},
-	{"foo", "alice", 2.00},
-	{"bar", "carol", 1.00},
-	{"foo", "bob", 4.00},
-}
-//Sort by customer first, product second, and last by higher price
-sort.Sort(Orders(orders))
+package main
 
-// wait for the  implement of slices.SortFunc
-//SortFunc(orders, func(a, b Order) int {
-//	return cmp.Or(
-//		strings.Compare(a.Customer, b.Customer),
-//		strings.Compare(a.Product, b.Product),
-//		cmp.Compare(b.Price, a.Price),
-//	)
-//})
-for _, order := range orders {
-	fmt.Printf("%s %s %.2f\n", order.Product, order.Customer, order.Price)
+import (
+	"fmt"
+	"sort"
+	"strings"
+
+	"github.com/dashjay/xiter/pkg/xcmp"
+)
+
+type Order struct {
+	Product  string
+	Customer string
+	Price    float64
 }
 
-// Output:
-// foo alice 2.00
-// foo alice 1.00
-// bar bob 3.00
-// foo bob 4.00
-// bar carol 1.00
-// baz carol 4.00
+type Orders []Order
+
+func (o Orders) Len() int {
+	return len(o)
+}
+func (o Orders) Less(i, j int) bool {
+	a, b := o[i], o[j]
+	if xcmp.Or(
+		strings.Compare(a.Customer, b.Customer),
+		strings.Compare(a.Product, b.Product),
+		xcmp.Compare(b.Price, a.Price)) < 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (o Orders) Swap(i, j int) {
+	o[i], o[j] = o[j], o[i]
+}
+
+func main() {
+	orders := []Order{
+		{"foo", "alice", 1.00},
+		{"bar", "bob", 3.00},
+		{"baz", "carol", 4.00},
+		{"foo", "alice", 2.00},
+		{"bar", "carol", 1.00},
+		{"foo", "bob", 4.00},
+	}
+	//Sort by customer first, product second, and last by higher price
+	sort.Sort(Orders(orders))
+
+	// wait for the  implement of slices.SortFunc
+	//SortFunc(orders, func(a, b Order) int {
+	//	return cmp.Or(
+	//		strings.Compare(a.Customer, b.Customer),
+	//		strings.Compare(a.Product, b.Product),
+	//		cmp.Compare(b.Price, a.Price),
+	//	)
+	//})
+	for _, order := range orders {
+		fmt.Printf("%s %s %.2f\n", order.Product, order.Customer, order.Price)
+	}
+
+}
 ```
 
 #### Output
@@ -183,7 +233,7 @@ baz carol 4.00
 </details>
 
 <a name="Ordered"></a>
-## type [Ordered](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/cmp.go#L8>)
+## type [Ordered](<https://github.com/dashjay/xiter/blob/main/pkg/xcmp/xcmp.go#L8>)
 
 
 
