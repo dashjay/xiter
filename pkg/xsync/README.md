@@ -343,19 +343,18 @@ func (s *SyncMap[K, V]) ToMap() map[K]V
 ToMap returns a copy of the map as a regular map.
 
 <a name="SyncPool"></a>
-## type [SyncPool](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L5-L9>)
+## type [SyncPool](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L5-L7>)
 
 
 
 ```go
 type SyncPool[T any] struct {
-    New func() T
     // contains filtered or unexported fields
 }
 ```
 
 <a name="NewSyncPool"></a>
-### func [NewSyncPool](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L12>)
+### func [NewSyncPool](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L10>)
 
 ```go
 func NewSyncPool[T any](new func() T) *SyncPool[T]
@@ -364,7 +363,7 @@ func NewSyncPool[T any](new func() T) *SyncPool[T]
 NewSyncPool creates a new SyncPool with specified init function
 
 <a name="SyncPool[T].Get"></a>
-### func \(\*SyncPool\[T\]\) [Get](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L30>)
+### func \(\*SyncPool\[T\]\) [Get](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L20>)
 
 ```go
 func (s *SyncPool[T]) Get() T
@@ -373,7 +372,7 @@ func (s *SyncPool[T]) Get() T
 Get wraps sync.Pool.Get.
 
 <a name="SyncPool[T].Put"></a>
-### func \(\*SyncPool\[T\]\) [Put](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L36>)
+### func \(\*SyncPool\[T\]\) [Put](<https://github.com/dashjay/xiter/blob/main/pkg/xsync/sync_pool.go#L25>)
 
 ```go
 func (s *SyncPool[T]) Put(x T)
