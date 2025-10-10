@@ -13,6 +13,7 @@ import (
 	"github.com/dashjay/xiter/pkg/internal/utils"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
+	"github.com/dashjay/xiter/pkg/xcmp"
 )
 
 type Seq[V any] func(yield func(V) bool)
