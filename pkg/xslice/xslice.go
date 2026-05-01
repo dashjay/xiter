@@ -931,7 +931,7 @@ func Sample[T any, Slice ~[]T](in Slice, n int) Slice {
 	out := make(Slice, len(in))
 	copy(out, in)
 	for i := 0; i < n; i++ {
-		j := rand.Intn(len(in)-i) + i
+		j := rand.Intn(len(in)-i) + i //nolint:gosec
 		out[i], out[j] = out[j], out[i]
 	}
 	return out[:n]
@@ -949,5 +949,5 @@ func RandomElement[T any, Slice ~[]T](in Slice) optional.O[T] {
 	if len(in) == 0 {
 		return optional.Empty[T]()
 	}
-	return optional.FromValue(in[rand.Intn(len(in))])
+	return optional.FromValue(in[rand.Intn(len(in))]) //nolint:gosec
 }
