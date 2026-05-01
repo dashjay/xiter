@@ -271,13 +271,13 @@ func (s *SyncMap[K, V]) Delete(key K)
 Delete wraps sync.Map.Delete.
 
 <a name="SyncMap[K, V].Len"></a>
-### func \(\*SyncMap\[K, V\]\) [Len](<https://github.com/dashjay/xiter/blob/main/xsync/sync_map.go#L62>)
+### func \(\*SyncMap\[K, V\]\) [Len](<https://github.com/dashjay/xiter/blob/main/xsync/sync_map.go#L64>)
 
 ```go
 func (s *SyncMap[K, V]) Len() int
 ```
 
-Len returns the number of elements in the map. The complexity is O\(n\). Not provided in stdlib but by our own
+Len returns the number of elements in the map. The complexity is O\(n\). NOTE: Len is not concurrency\-safe. It uses sync.Map.Range internally, which does not block concurrent writes, so the count may be inaccurate if other goroutines are modifying the map concurrently.
 
 <a name="SyncMap[K, V].Load"></a>
 ### func \(\*SyncMap\[K, V\]\) [Load](<https://github.com/dashjay/xiter/blob/main/xsync/sync_map.go#L19>)
@@ -334,13 +334,13 @@ func (s *SyncMap[K, V]) Swap(key K, value V) (previous V, loaded bool)
 
 
 <a name="SyncMap[K, V].ToMap"></a>
-### func \(\*SyncMap\[K, V\]\) [ToMap](<https://github.com/dashjay/xiter/blob/main/xsync/sync_map.go#L72>)
+### func \(\*SyncMap\[K, V\]\) [ToMap](<https://github.com/dashjay/xiter/blob/main/xsync/sync_map.go#L78>)
 
 ```go
 func (s *SyncMap[K, V]) ToMap() map[K]V
 ```
 
-ToMap returns a copy of the map as a regular map.
+ToMap returns a copy of the map as a regular map. NOTE: ToMap is not concurrency\-safe. It uses sync.Map.Range internally, which does not block concurrent writes, so the returned map may not reflect a consistent snapshot if other goroutines are modifying the map concurrently.
 
 <a name="SyncPool"></a>
 ## type [SyncPool](<https://github.com/dashjay/xiter/blob/main/xsync/sync_pool.go#L5-L7>)

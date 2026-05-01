@@ -58,7 +58,9 @@ func (s *SyncMap[K, V]) Range(f func(key K, value V) bool) {
 
 // Len returns the number of elements in the map.
 // The complexity is O(n).
-// Not provided in stdlib but by our own
+// NOTE: Len is not concurrency-safe. It uses sync.Map.Range internally,
+// which does not block concurrent writes, so the count may be inaccurate
+// if other goroutines are modifying the map concurrently.
 func (s *SyncMap[K, V]) Len() int {
 	l := 0
 	s.m.Range(func(key, value any) bool {
@@ -69,6 +71,10 @@ func (s *SyncMap[K, V]) Len() int {
 }
 
 // ToMap returns a copy of the map as a regular map.
+// NOTE: ToMap is not concurrency-safe. It uses sync.Map.Range internally,
+// which does not block concurrent writes, so the returned map may not
+// reflect a consistent snapshot if other goroutines are modifying the
+// map concurrently.
 func (s *SyncMap[K, V]) ToMap() map[K]V {
 	out := make(map[K]V)
 	s.Range(func(key K, value V) bool {
