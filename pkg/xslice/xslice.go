@@ -38,7 +38,14 @@ func Any[T any](in []T, f func(T) bool) bool {
 //	xslice.Avg([]int{1, 2, 3}) 👉 float(2)
 //	xslice.Avg([]int{}) 👉 float(0)
 func Avg[T constraints.Number](in []T) float64 {
-	return xiter.AvgFromSeq(xiter.FromSlice(in))
+	if len(in) == 0 {
+		return 0
+	}
+	var sum T
+	for _, v := range in {
+		sum += v
+	}
+	return float64(sum) / float64(len(in))
 }
 
 // AvgN returns the average value of the items
@@ -48,7 +55,7 @@ func Avg[T constraints.Number](in []T) float64 {
 //	xslice.AvgN(1, 2, 3) 👉 float(2)
 //	xslice.AvgN() 👉 float(0)
 func AvgN[T constraints.Number](inputs ...T) float64 {
-	return xiter.AvgFromSeq(xiter.FromSlice(inputs))
+	return Avg(inputs)
 }
 
 // AvgBy returns the averaged of each item's value evaluated by f.
@@ -60,7 +67,14 @@ func AvgN[T constraints.Number](inputs ...T) float64 {
 //		return i
 //	}) 👉 float(2)
 func AvgBy[V any, T constraints.Number](in []V, f func(V) T) float64 {
-	return xiter.AvgByFromSeq(xiter.FromSlice(in), f)
+	if len(in) == 0 {
+		return 0
+	}
+	var sum T
+	for _, v := range in {
+		sum += f(v)
+	}
+	return float64(sum) / float64(len(in))
 }
 
 // Contains returns true if the slice contains the value v.
@@ -119,7 +133,7 @@ func ContainsAll[T comparable](in []T, v []T) bool {
 //	xslice.Count([]int{1, 2, 3}) 👉 3
 //	xslice.Count([]int{}) 👉 0
 func Count[T any](in []T) int {
-	return xiter.Count(xiter.FromSlice(in))
+	return len(in)
 }
 
 // Find returns the first item in the slice that satisfies the condition provided by f.
@@ -201,7 +215,23 @@ func Head[T any](in []T) (v T, hasOne bool) {
 //	xslice.Join([]string{"1", "2", "3"}, ".") 👉 "1.2.3"
 //	xslice.Join([]string{}, ".") 👉 ""
 func Join[T ~string](in []T, sep T) T {
-	return xiter.Join(xiter.FromSlice(in), sep)
+	if len(in) == 0 {
+		return ""
+	}
+	if len(in) == 1 {
+		return in[0]
+	}
+	n := len(sep) * (len(in) - 1)
+	for _, s := range in {
+		n += len(s)
+	}
+	b := make([]byte, n)
+	bp := copy(b, string(in[0]))
+	for _, s := range in[1:] {
+		bp += copy(b[bp:], string(sep))
+		bp += copy(b[bp:], string(s))
+	}
+	return T(string(b))
 }
 
 // Min returns the minimum value in the slice.
@@ -211,7 +241,16 @@ func Join[T ~string](in []T, sep T) T {
 //	xslice.Min([]int{1, 2, 3}) 👉 1
 //	xslice.Min([]int{}) 👉 0
 func Min[T constraints.Ordered](in []T) optional.O[T] {
-	return xiter.Min(xiter.FromSlice(in))
+	if len(in) == 0 {
+		return optional.Empty[T]()
+	}
+	m := in[0]
+	for _, v := range in[1:] {
+		if v < m {
+			m = v
+		}
+	}
+	return optional.FromValue(m)
 }
 
 // MinN returns the minimum value in the slice.
@@ -229,7 +268,16 @@ func MinN[T constraints.Ordered](in ...T) optional.O[T] {
 //
 //	xslice.MinBy([]int{3, 2, 1} /*less = */, func(a, b int) bool { return a > b }).Must() 👉 3
 func MinBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T] {
-	return xiter.MinBy(xiter.FromSlice(in), f)
+	if len(in) == 0 {
+		return optional.Empty[T]()
+	}
+	m := in[0]
+	for _, v := range in[1:] {
+		if f(v, m) {
+			m = v
+		}
+	}
+	return optional.FromValue(m)
 }
 
 // Max returns the maximum value in the slice.
@@ -239,7 +287,16 @@ func MinBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T] {
 //	xslice.Max([]int{1, 2, 3}) 👉 3
 //	xslice.Max([]int{}) 👉 0
 func Max[T constraints.Ordered](in []T) optional.O[T] {
-	return xiter.Max(xiter.FromSlice(in))
+	if len(in) == 0 {
+		return optional.Empty[T]()
+	}
+	m := in[0]
+	for _, v := range in[1:] {
+		if v > m {
+			m = v
+		}
+	}
+	return optional.FromValue(m)
 }
 
 // MaxN returns the maximum value in the slice.
@@ -257,7 +314,16 @@ func MaxN[T constraints.Ordered](in ...T) optional.O[T] {
 //
 //	xslice.MaxBy([]int{1, 2, 3} /*less = */, func(a, b int) bool { return a > b }).Must() 👉 1
 func MaxBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T] {
-	return xiter.MaxBy(xiter.FromSlice(in), f)
+	if len(in) == 0 {
+		return optional.Empty[T]()
+	}
+	m := in[0]
+	for _, v := range in[1:] {
+		if f(m, v) {
+			m = v
+		}
+	}
+	return optional.FromValue(m)
 }
 
 // Map returns a new slice with the results of applying the given function to every element in this slice.
@@ -267,7 +333,11 @@ func MaxBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T] {
 //	xslice.Map([]int{1, 2, 3}, func(x int) int { return x * 2 }) 👉 [2, 4, 6]
 //	xslice.Map([]int{1, 2, 3}, strconv.Itoa) 👉 ["1", "2", "3"]
 func Map[T any, U any](in []T, f func(T) U) []U {
-	return xiter.ToSlice(xiter.Map(f, xiter.FromSlice(in)))
+	out := make([]U, len(in))
+	for i, v := range in {
+		out[i] = f(v)
+	}
+	return out
 }
 
 // Clone returns a copy of the slice.
@@ -276,10 +346,7 @@ func Map[T any, U any](in []T, f func(T) U) []U {
 //
 //	xslice.Clone([]int{1, 2, 3}) 👉 [1, 2, 3]
 func Clone[T any](in []T) []T {
-	if in == nil {
-		return nil
-	}
-	return xiter.ToSlice(xiter.FromSlice(in))
+	return append([]T(nil), in...)
 }
 
 // CloneBy returns a copy of the slice with the results of applying the given function to every element in this slice.
@@ -302,11 +369,15 @@ func CloneBy[T any, U any](in []T, f func(T) U) []U {
 //	xslice.Concat([]int{1, 2, 3}, []int{4, 5, 6}) 👉 [1, 2, 3, 4, 5, 6]
 //	xslice.Concat([]int{1, 2, 3}, []int{}) 👉 [1, 2, 3]
 func Concat[T any](vs ...[]T) []T {
-	var seqs = make([]xiter.Seq[T], 0, len(vs))
+	n := 0
 	for _, v := range vs {
-		seqs = append(seqs, xiter.FromSlice(v))
+		n += len(v)
 	}
-	return xiter.ToSlice(xiter.Concat(seqs...))
+	out := make([]T, 0, n)
+	for _, v := range vs {
+		out = append(out, v...)
+	}
+	return out
 }
 
 // Subset returns a subset slice from the slice.
@@ -320,14 +391,21 @@ func Subset[T any, Slice ~[]T](in Slice, start, count int) Slice {
 	if count < 0 {
 		count = 0
 	}
-	if start >= len(in) || -start > len(in) {
+	n := len(in)
+	if start >= n || -start > n {
 		return nil
 	}
-	if start >= 0 {
-		return xiter.ToSlice(xiter.Limit(xiter.Skip(xiter.FromSlice(in), start), count))
-	} else {
-		return xiter.ToSlice(xiter.Limit(xiter.Skip(xiter.FromSlice(in), len(in)+start), count))
+	if start < 0 {
+		start = n + start
 	}
+	if start+count > n {
+		count = n - start
+	}
+	out := make(Slice, count)
+	for i := 0; i < count; i++ {
+		out[i] = in[start+i]
+	}
+	return out
 }
 
 // SubsetInPlace returns a subset slice copied from the slice.
@@ -362,7 +440,21 @@ func SubsetInPlace[T any, Slice ~[]T](in Slice, start int, count int) Slice {
 //	xslice.Replace([]int{1, 2, 3}, 2, 4, 1) 👉 [1, 4, 3]
 //	xslice.Replace([]int{1, 2, 2}, 2, 4, -1) 👉 [1, 4, 4]
 func Replace[T comparable, Slice ~[]T](in Slice, from, to T, count int) []T {
-	return xiter.ToSlice(xiter.Replace(xiter.FromSlice(in), from, to, count))
+	if count == 0 {
+		return Clone(in)
+	}
+	out := Clone(in)
+	replaced := 0
+	for i, v := range out {
+		if v == from {
+			out[i] = to
+			replaced++
+			if count > 0 && replaced >= count {
+				break
+			}
+		}
+	}
+	return out
 }
 
 // ReplaceAll replaces all elements in the slice from 'from' to 'to'.
@@ -383,9 +475,11 @@ func ReplaceAll[T comparable, Slice ~[]T](in Slice, from, to T) []T {
 //	xslice.ReverseClone([]int{}) 👉 []int{}
 //	xslice.ReverseClone([]int{3, 2, 1}) 👉 [1, 2, 3]
 func ReverseClone[T any, Slice ~[]T](in Slice) Slice {
-	// why we do not use slices.Reverse() directly ?
-	// because lower version golang may has not package "slices"
-	return xiter.ToSlice(xiter.FromSliceReverse(in))
+	out := make(Slice, len(in))
+	for i, v := range in {
+		out[len(in)-1-i] = v
+	}
+	return out
 }
 
 // Reverse reverses the slice.
@@ -407,7 +501,14 @@ func Reverse[T any, Slice ~[]T](in Slice) {
 //	xslice.Repeat([]int{1, 2, 3}, 3) 👉 [1, 2, 3, 1, 2, 3, 1, 2, 3]
 //	xslice.Repeat([]int{1, 2, 3}, 0) 👉 []int{}
 func Repeat[T any, Slice ~[]T](in Slice, count int) Slice {
-	return xiter.ToSlice(xiter.Repeat(xiter.FromSlice(in), count))
+	if count <= 0 {
+		return nil
+	}
+	out := make(Slice, 0, len(in)*count)
+	for i := 0; i < count; i++ {
+		out = append(out, in...)
+	}
+	return out
 }
 
 // RepeatBy returns a new slice with the elements return by f repeated 'count' times.
@@ -431,7 +532,12 @@ func RepeatBy[T any](n int, f func(i int) T) []T {
 //	xslice.Shuffle([]int{1, 2, 3}) 👉 [2, 1, 3] (random)
 //	xslice.Shuffle([]int{}) 👉 []int{}
 func Shuffle[T any, Slice ~[]T](in Slice) Slice {
-	return xiter.ToSlice(xiter.FromSliceShuffle(in))
+	out := make(Slice, len(in))
+	copy(out, in)
+	rand.Shuffle(len(out), func(i, j int) {
+		out[i], out[j] = out[j], out[i]
+	})
+	return out
 }
 
 // ShuffleInPlace shuffles the slice.
@@ -507,7 +613,11 @@ func Index[T comparable, Slice ~[]T](in Slice, v T) int {
 //	xslice.Sum([]int{1, 2, 3}) 👉 6
 //	xslice.Sum([]int{}) 👉 0
 func Sum[T constraints.Number, Slice ~[]T](in Slice) T {
-	return xiter.Sum(xiter.FromSlice(in))
+	var sum T
+	for _, v := range in {
+		sum += v
+	}
+	return sum
 }
 
 // SumN returns the sum of all input arguments.
@@ -517,7 +627,7 @@ func Sum[T constraints.Number, Slice ~[]T](in Slice) T {
 //	xslice.SumN(1, 2, 3) 👉 6
 //	xslice.SumN() 👉 0
 func SumN[T constraints.Number](in ...T) T {
-	return xiter.Sum(xiter.FromSlice(in))
+	return Sum(in)
 }
 
 // SumBy returns the sum of all elements in the slice after applying the given function f to each element.
@@ -530,7 +640,11 @@ func SumN[T constraints.Number](in ...T) T {
 //	}) 👉 6
 //	xslice.SumBy([]string{}, func(x string) int { return 0 }) 👉 0
 func SumBy[T any, R constraints.Number, Slice ~[]T](in Slice, f func(T) R) R {
-	return xiter.Sum(xiter.Map(f, xiter.FromSlice(in)))
+	var sum R
+	for _, v := range in {
+		sum += f(v)
+	}
+	return sum
 }
 
 // Uniq returns a new slice with the duplicate elements removed.
@@ -539,7 +653,15 @@ func SumBy[T any, R constraints.Number, Slice ~[]T](in Slice, f func(T) R) R {
 //
 //	xslice.Uniq([]int{1, 2, 3, 2, 4}) 👉 [1, 2, 3, 4]
 func Uniq[T comparable, Slice ~[]T](in Slice) Slice {
-	return xiter.ToSlice(xiter.Uniq(xiter.FromSlice(in)))
+	seen := make(map[T]struct{}, len(in)/2)
+	out := make(Slice, 0, len(in))
+	for _, v := range in {
+		if _, ok := seen[v]; !ok {
+			seen[v] = struct{}{}
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // GroupBy returns a map of the slice elements grouped by the given function f.
@@ -548,11 +670,12 @@ func Uniq[T comparable, Slice ~[]T](in Slice) Slice {
 //
 //	xslice.GroupBy([]int{1, 2, 3, 2, 4}, func(x int) int { return x % 2 }) 👉 map[0:[2 4] 1:[1 3]]
 func GroupBy[T any, K comparable, Slice ~[]T](in Slice, f func(T) K) map[K]Slice {
-	seq2 := xiter.MapToSeq2(xiter.FromSlice(in), f)
-	return xiter.Reduce2(func(sum map[K]Slice, k K, v T) map[K]Slice {
-		sum[k] = append(sum[k], v)
-		return sum
-	}, map[K]Slice{}, seq2)
+	out := make(map[K]Slice, len(in)/2)
+	for _, v := range in {
+		k := f(v)
+		out[k] = append(out[k], v)
+	}
+	return out
 }
 
 // GroupByMap returns a map of the slice elements grouped by the given function f.
@@ -561,11 +684,12 @@ func GroupBy[T any, K comparable, Slice ~[]T](in Slice, f func(T) K) map[K]Slice
 //
 //	xslice.GroupByMap([]int{1, 2, 3, 2, 4}, func(x int) (int, int) { return x % 2, x }) 👉 map[0:[2 4] 1:[1 3]]
 func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, V)) map[K][]V {
-	seq2 := xiter.MapToSeq2Value(xiter.FromSlice(in), f)
-	return xiter.Reduce2(func(sum map[K][]V, k K, v V) map[K][]V {
-		sum[k] = append(sum[k], v)
-		return sum
-	}, map[K][]V{}, seq2)
+	out := make(map[K][]V, len(in)/2)
+	for _, v := range in {
+		k, mv := f(v)
+		out[k] = append(out[k], mv)
+	}
+	return out
 }
 
 // Filter returns a new slice with the elements that satisfy the given function f.
@@ -574,7 +698,13 @@ func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, 
 //
 //	xslice.Filter([]int{1, 2, 3, 2, 4}, func(x int) bool { return x%2 == 0 }) 👉 [2 4]
 func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice {
-	return xiter.ToSlice(xiter.Filter(f, xiter.FromSlice(in)))
+	out := make(Slice, 0, len(in)/2)
+	for _, v := range in {
+		if f(v) {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // Compact returns a new slice with the zero elements removed.
@@ -583,7 +713,14 @@ func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice {
 //
 //	xslice.Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
 func Compact[T comparable, Slice ~[]T](in Slice) Slice {
-	return xiter.ToSlice(xiter.Compact(xiter.FromSlice(in)))
+	var zero T
+	out := make(Slice, 0, len(in))
+	for _, v := range in {
+		if v != zero {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // First returns the first element in the slice.
@@ -613,7 +750,11 @@ func FirstO[T any, Slice ~[]T](in Slice) optional.O[T] {
 //	xslice.Last([]int{1, 2, 3}) 👉 3
 //	xslice.Last([]int{}) 👉 0
 func Last[T any, Slice ~[]T](in Slice) (T, bool) {
-	return xiter.Last(xiter.FromSlice(in))
+	if len(in) == 0 {
+		var zero T
+		return zero, false
+	}
+	return in[len(in)-1], true
 }
 
 // LastO returns the last element in the slice as an optional.O[T].
@@ -637,8 +778,27 @@ func LastO[T any, Slice ~[]T](in Slice) optional.O[T] {
 //	fmt.Println(onlyLeft)  // [1 2 3]
 //	fmt.Println(onlyRight) // [6 7 8]
 func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRight Slice) {
-	onlyLeftSeq, onlyRightSeq := xiter.Difference(xiter.FromSlice(left), xiter.FromSlice(right))
-	return xiter.ToSlice(onlyLeftSeq), xiter.ToSlice(onlyRightSeq)
+	rightSet := make(map[T]struct{}, len(right))
+	for _, v := range right {
+		rightSet[v] = struct{}{}
+	}
+	leftSet := make(map[T]struct{}, len(left))
+	for _, v := range left {
+		leftSet[v] = struct{}{}
+	}
+	onlyLeft = make(Slice, 0, len(left)/2)
+	for _, v := range left {
+		if _, ok := rightSet[v]; !ok {
+			onlyLeft = append(onlyLeft, v)
+		}
+	}
+	onlyRight = make(Slice, 0, len(right)/2)
+	for _, v := range right {
+		if _, ok := leftSet[v]; !ok {
+			onlyRight = append(onlyRight, v)
+		}
+	}
+	return
 }
 
 // Intersect returns a slice that contains the elements that are in both left and right slices.
@@ -656,7 +816,17 @@ func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice {
 	} else {
 		smaller, larger = left, right
 	}
-	return xiter.ToSlice(xiter.Intersect(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
+	set := make(map[T]struct{}, len(smaller))
+	for _, v := range smaller {
+		set[v] = struct{}{}
+	}
+	out := make(Slice, 0, len(smaller))
+	for _, v := range larger {
+		if _, ok := set[v]; ok {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // Union returns a slice that contains all elements in left and right slices.
@@ -674,7 +844,18 @@ func Union[T comparable, Slice ~[]T](left, right Slice) Slice {
 	} else {
 		smaller, larger = right, left
 	}
-	return xiter.ToSlice(xiter.Union(xiter.FromSlice(smaller), xiter.FromSlice(larger)))
+	set := make(map[T]struct{}, len(smaller))
+	for _, v := range smaller {
+		set[v] = struct{}{}
+	}
+	out := make(Slice, 0, len(smaller)+len(larger)/2)
+	out = append(out, smaller...)
+	for _, v := range larger {
+		if _, ok := set[v]; !ok {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // Remove returns a slice that remove all elements in wantToRemove
@@ -685,16 +866,20 @@ func Union[T comparable, Slice ~[]T](left, right Slice) Slice {
 //	arr1 := xslice.Remove(arr, 1)
 //	fmt.Println(arr1) // [2, 3, 4]
 func Remove[T comparable, Slice ~[]T](in Slice, wantToRemove ...T) Slice {
-	seq := xiter.FromSlice(wantToRemove)
-	return xiter.ToSlice(xiter.Filter(func(v T) bool {
-		if len(wantToRemove) == 0 {
-			return true
+	if len(wantToRemove) == 0 {
+		return Clone(in)
+	}
+	removeSet := make(map[T]struct{}, len(wantToRemove))
+	for _, v := range wantToRemove {
+		removeSet[v] = struct{}{}
+	}
+	out := make(Slice, 0, len(in))
+	for _, v := range in {
+		if _, ok := removeSet[v]; !ok {
+			out = append(out, v)
 		}
-		if len(wantToRemove) == 1 {
-			return wantToRemove[0] != v
-		}
-		return !xiter.Contains(seq, v)
-	}, xiter.FromSlice(in)))
+	}
+	return out
 }
 
 // Flatten returns a new slice with all nested slices flattened into a single slice.
@@ -719,9 +904,11 @@ func Flatten[T any](in [][]T) []T {
 //	xslice.ToMap([]int{1, 2, 1, 3}, func(i int) string { return fmt.Sprintf("val_%d", i) }) 👉 map[1:val_1 2:val_2 3:val_3] (note: key 1 has "val_1" from the last occurrence)
 //	xslice.ToMap([]int{}, func(i int) string { return "" }) 👉 map[int]string{}
 func ToMap[T comparable, U any](in []T, f func(T) U) map[T]U {
-	return xiter.ToMap(xiter.Map2(func(idx int, in T) (T, U) {
-		return in, f(in)
-	}, xiter.FromSliceIdx(in)))
+	out := make(map[T]U, len(in))
+	for _, v := range in {
+		out[v] = f(v)
+	}
+	return out
 }
 
 // Sample returns a new slice with n randomly selected elements from the input slice.
@@ -735,7 +922,19 @@ func ToMap[T comparable, U any](in []T, f func(T) U) map[T]U {
 //	xslice.Sample([]int{1, 2, 3}, 0) 👉 []int{}
 //	xslice.Sample([]int{}, 3) 👉 []int{}
 func Sample[T any, Slice ~[]T](in Slice, n int) Slice {
-	return xiter.ToSlice(xiter.Limit(xiter.FromSliceShuffle(in), n))
+	if n <= 0 || len(in) == 0 {
+		return nil
+	}
+	if n >= len(in) {
+		return Shuffle(in)
+	}
+	out := make(Slice, len(in))
+	copy(out, in)
+	for i := 0; i < n; i++ {
+		j := rand.Intn(len(in)-i) + i
+		out[i], out[j] = out[j], out[i]
+	}
+	return out[:n]
 }
 
 // RandomElement returns a random element from the slice as an optional.O[T].
