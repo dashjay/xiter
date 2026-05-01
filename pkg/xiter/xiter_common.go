@@ -276,10 +276,7 @@ func Cycle[T any](seq Seq[T]) Seq[T] {
 //	// first5 contains 5 random numbers
 func Generate[T any](fn func() T) Seq[T] {
 	return func(yield func(T) bool) {
-		for {
-			if !yield(fn()) {
-				break
-			}
+		for yield(fn()) {
 		}
 	}
 }
