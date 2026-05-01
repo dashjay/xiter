@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [ '1.18.10', '1.19.13', '1.20.14', '1.21.13', '1.22.8', '1.23.2' ]
+        go: [ '1.18.10', '1.19.13', '1.20.14', '1.21.13', '1.22.8', '1.23.2', '1.24.2', '1.25.1', '1.26.2' ]
     name: Go ${{ matrix.go }} test
     steps:
       - uses: actions/checkout@v4
