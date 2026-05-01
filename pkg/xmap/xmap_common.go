@@ -4,7 +4,6 @@ import (
 	"github.com/dashjay/xiter/pkg/internal/constraints"
 	"github.com/dashjay/xiter/pkg/optional"
 	"github.com/dashjay/xiter/pkg/union"
-	"github.com/dashjay/xiter/pkg/xiter"
 	"github.com/dashjay/xiter/pkg/xsync"
 )
 
@@ -33,11 +32,13 @@ import (
 //	result := CoalesceMaps(map1, map2, map3)
 //	// result will be map[string]int{"a": 1, "b": 3, "c": 4, "d": 5}
 func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M {
-	seqs := make([]xiter.Seq2[K, V], 0, len(maps))
+	result := make(M)
 	for _, m := range maps {
-		seqs = append(seqs, xiter.FromMapKeyAndValues(m))
+		for k, v := range m {
+			result[k] = v
+		}
 	}
-	return xiter.ToMap(xiter.Concat2(seqs...))
+	return result
 }
 
 // Filter filters the map by the given function.
@@ -50,7 +51,13 @@ func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M {
 //	result := Filter(m, fn)
 //	// result will be map[string]int{"b": 2, "c": 3}
 func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M {
-	return xiter.ToMap(xiter.Filter2(fn, xiter.FromMapKeyAndValues(in)))
+	result := make(M)
+	for k, v := range in {
+		if fn(k, v) {
+			result[k] = v
+		}
+	}
+	return result
 }
 
 // MapValues transforms the values of a map using the provided function while keeping keys unchanged.
@@ -74,7 +81,11 @@ func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M {
 //	result := MapValues(m, fn)
 //	// result will be map[string]string{"a": "value_1", "b": "value_2", "c": "value_3"}
 func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V2 {
-	return xiter.ToMap(xiter.Map2(func(k K, v V1) (K, V2) { return k, fn(k, v) }, xiter.FromMapKeyAndValues(in)))
+	result := make(map[K]V2, len(in))
+	for k, v := range in {
+		result[k] = fn(k, v)
+	}
+	return result
 }
 
 // MapKeys transforms the keys of a map using the provided function while keeping values unchanged.
@@ -98,7 +109,11 @@ func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V
 //	result := MapKeys(m, fn)
 //	// result will be map[string]int{"a_key": 1, "b_key": 2, "c_key": 3}
 func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1 {
-	return xiter.ToMap(xiter.Map2(func(k K, v V1) (K, V1) { return fn(k, v), v }, xiter.FromMapKeyAndValues(in)))
+	result := make(map[K]V1, len(in))
+	for k, v := range in {
+		result[fn(k, v)] = v
+	}
+	return result
 }
 
 // ToXSyncMap converts a map to a xsync.SyncMap.
@@ -296,11 +311,19 @@ func DeleteIf[K comparable, V any](m map[K]V, k K, c func(K, V) bool) (old V, de
 //	result2 := xmap.MaxKey(map[string]int{})
 //	// result2.Ok() == false
 func MaxKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]] {
-	o := xiter.Max(xiter.FromMapKeys(m))
-	if o.Ok() {
-		return optional.FromValue(union.U2[K, V]{T1: o.Must(), T2: m[o.Must()]})
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
 	}
-	return optional.Empty[union.U2[K, V]]()
+	var maxK K
+	var maxV V
+	first := true
+	for k, v := range m {
+		if first || k > maxK {
+			maxK, maxV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: maxK, T2: maxV})
 }
 
 // MinKey returns the minimum key in the map and its associated value as an optional.O[union.U2[K, V]].
@@ -317,11 +340,19 @@ func MaxKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]] 
 //	result2 := xmap.MinKey(map[string]int{})
 //	// result2.Ok() == false
 func MinKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]] {
-	o := xiter.Min(xiter.FromMapKeys(m))
-	if o.Ok() {
-		return optional.FromValue(union.U2[K, V]{T1: o.Must(), T2: m[o.Must()]})
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
 	}
-	return optional.Empty[union.U2[K, V]]()
+	var minK K
+	var minV V
+	first := true
+	for k, v := range m {
+		if first || k < minK {
+			minK, minV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: minK, T2: minV})
 }
 
 // MaxValue returns the maximum value in the map and its associated key as an optional.O[union.U2[K, V]].
@@ -338,10 +369,19 @@ func MinKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]] 
 //	result2 := xmap.MaxValue(map[string]int{})
 //	// result2.Ok() == false
 func MaxValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]] {
-	o := xiter.MaxBy(xiter.Seq2ToSeqUnion(xiter.FromMapKeyAndValues(m)), func(a union.U2[K, V], b union.U2[K, V]) bool {
-		return a.T2 < b.T2
-	})
-	return o
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
+	}
+	var maxK K
+	var maxV V
+	first := true
+	for k, v := range m {
+		if first || v > maxV {
+			maxK, maxV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: maxK, T2: maxV})
 }
 
 // MinValue returns the minimum value in the map and its associated key as an optional.O[union.U2[K, V]].
@@ -358,8 +398,17 @@ func MaxValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U
 //	result2 := xmap.MinValue(map[string]int{})
 //	// result2.Ok() == false
 func MinValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]] {
-	o := xiter.MinBy(xiter.Seq2ToSeqUnion(xiter.FromMapKeyAndValues(m)), func(a union.U2[K, V], b union.U2[K, V]) bool {
-		return a.T2 < b.T2
-	})
-	return o
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
+	}
+	var minK K
+	var minV V
+	first := true
+	for k, v := range m {
+		if first || v < minV {
+			minK, minV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: minK, T2: minV})
 }
