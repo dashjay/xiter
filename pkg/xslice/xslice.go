@@ -951,3 +951,145 @@ func RandomElement[T any, Slice ~[]T](in Slice) optional.O[T] {
 	}
 	return optional.FromValue(in[rand.Intn(len(in))]) //nolint:gosec
 }
+
+// CountBy counts occurrences of each key in the slice, returning a map of keys to counts.
+//
+// EXAMPLE:
+//
+//	xslice.CountBy([]int{1, 2, 3, 2, 1, 2}, func(x int) int { return x })
+//	// 👉 map[int]int{1: 2, 2: 3, 3: 1}
+func CountBy[T any, K comparable](in []T, fn func(T) K) map[K]int {
+	result := make(map[K]int)
+	for _, v := range in {
+		result[fn(v)]++
+	}
+	return result
+}
+
+// KeyBy creates a map from the slice using the key function.
+// Later elements overwrite earlier ones for duplicate keys.
+//
+// EXAMPLE:
+//
+//	xslice.KeyBy([]int{1, 2, 3}, func(x int) int { return x * 10 })
+//	// 👉 map[int]int{10: 1, 20: 2, 30: 3}
+func KeyBy[T any, K comparable](in []T, fn func(T) K) map[K]T {
+	result := make(map[K]T, len(in))
+	for _, v := range in {
+		result[fn(v)] = v
+	}
+	return result
+}
+
+// Partition splits a slice into two slices based on a predicate.
+// The first return slice contains elements where fn returns true.
+//
+// EXAMPLE:
+//
+//	yes, no := xslice.Partition([]int{1, 2, 3, 4, 5}, func(x int) bool { return x%2 == 0 })
+//	// yes 👉 []int{2, 4}, no 👉 []int{1, 3, 5}
+func Partition[T any, Slice ~[]T](in Slice, fn func(T) bool) (yes, no Slice) {
+	yes = make(Slice, 0)
+	no = make(Slice, 0)
+	for _, v := range in {
+		if fn(v) {
+			yes = append(yes, v)
+		} else {
+			no = append(no, v)
+		}
+	}
+	return
+}
+
+// FlatMap maps each element to a slice and flattens the results into a single slice.
+//
+// EXAMPLE:
+//
+//	xslice.FlatMap([]int{1, 2, 3}, func(x int) []int { return []int{x, x * 10} })
+//	// 👉 []int{1, 10, 2, 20, 3, 30}
+func FlatMap[T any, U any](in []T, fn func(T) []U) []U {
+	result := make([]U, 0)
+	for _, v := range in {
+		result = append(result, fn(v)...)
+	}
+	return result
+}
+
+// IsSorted checks if the slice is sorted in ascending order.
+// Empty and single-element slices are considered sorted.
+//
+// EXAMPLE:
+//
+//	xslice.IsSorted([]int{1, 2, 3, 4}) 👉 true
+//	xslice.IsSorted([]int{1, 3, 2, 4}) 👉 false
+func IsSorted[T constraints.Ordered](in []T) bool {
+	for i := 0; i < len(in)-1; i++ {
+		if in[i] > in[i+1] {
+			return false
+		}
+	}
+	return true
+}
+
+// AllEqual checks if all elements in the slice are equal.
+// Empty and single-element slices are considered to have all equal elements.
+//
+// EXAMPLE:
+//
+//	xslice.AllEqual([]int{1, 1, 1, 1}) 👉 true
+//	xslice.AllEqual([]int{1, 2, 1, 1}) 👉 false
+func AllEqual[T comparable](in []T) bool {
+	for i := 1; i < len(in); i++ {
+		if in[i] != in[0] {
+			return false
+		}
+	}
+	return true
+}
+
+// MinMax returns the minimum and maximum elements in the slice in a single pass.
+//
+// EXAMPLE:
+//
+//	xslice.MinMax([]int{3, 1, 4, 1, 5, 9}) 👉 (1, 9, true)
+//	xslice.MinMax([]int{}) 👉 (0, 0, false)
+func MinMax[T constraints.Ordered](in []T) (min T, max T, ok bool) {
+	if len(in) == 0 {
+		return
+	}
+	min, max = in[0], in[0]
+	for _, v := range in[1:] {
+		if v < min {
+			min = v
+		}
+		if v > max {
+			max = v
+		}
+	}
+	return min, max, true
+}
+
+// Mode returns the most frequently occurring element in the slice.
+// If the slice is empty, it returns an empty optional.
+// If there are multiple modes (tie), the first one to reach the maximum count is returned.
+//
+// EXAMPLE:
+//
+//	xslice.Mode([]int{1, 2, 3, 2, 1, 2}) 👉 2
+//	xslice.Mode([]int{}) 👉 optional.Empty[int]()
+func Mode[T comparable](in []T) optional.O[T] {
+	if len(in) == 0 {
+		return optional.Empty[T]()
+	}
+	counts := make(map[T]int)
+	maxCount := 0
+	var mode T
+	for _, v := range in {
+		counts[v]++
+		if counts[v] > maxCount {
+			maxCount = counts[v]
+			mode = v
+		}
+	}
+	return optional.FromValue(mode)
+}

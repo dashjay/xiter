@@ -236,3 +236,71 @@ func BenchmarkChunk(b *testing.B) {
 		})
 	}
 }
+
+func BenchmarkCountBy(b *testing.B) {
+	data := _range(0, 10_000)
+	fn := func(x int) int { return x % 100 }
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = xslice.CountBy(data, fn)
+	}
+}
+
+func BenchmarkKeyBy(b *testing.B) {
+	data := _range(0, 10_000)
+	fn := func(x int) int { return x % 1000 }
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = xslice.KeyBy(data, fn)
+	}
+}
+
+func BenchmarkPartition(b *testing.B) {
+	data := _range(0, 10_000)
+	fn := func(x int) bool { return x%2 == 0 }
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = xslice.Partition(data, fn)
+	}
+}
+
+func BenchmarkFlatMap(b *testing.B) {
+	data := _range(0, 1000)
+	fn := func(x int) []int { return []int{x, x * 10} }
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = xslice.FlatMap(data, fn)
+	}
+}
+
+func BenchmarkIsSorted(b *testing.B) {
+	data := _range(0, 10_000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = xslice.IsSorted(data)
+	}
+}
+
+func BenchmarkAllEqual(b *testing.B) {
+	data := make([]int, 10_000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = xslice.AllEqual(data)
+	}
+}
+
+func BenchmarkMinMax(b *testing.B) {
+	data := _range(0, 10_000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, _ = xslice.MinMax(data)
+	}
+}
+
+func BenchmarkMode(b *testing.B) {
+	data := _range(0, 1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = xslice.Mode(data)
+	}
+}
