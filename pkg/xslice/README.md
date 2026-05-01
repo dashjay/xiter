@@ -9,6 +9,7 @@ import "github.com/dashjay/xiter/pkg/xslice"
 ## Index
 
 - [func All\[T any\]\(in \[\]T, f func\(T\) bool\) bool](<#All>)
+- [func AllEqual\[T comparable\]\(in \[\]T\) bool](<#AllEqual>)
 - [func Any\[T any\]\(in \[\]T, f func\(T\) bool\) bool](<#Any>)
 - [func Avg\[T constraints.Number\]\(in \[\]T\) float64](<#Avg>)
 - [func AvgBy\[V any, T constraints.Number\]\(in \[\]V, f func\(V\) T\) float64](<#AvgBy>)
@@ -24,12 +25,14 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func ContainsAny\[T comparable\]\(in \[\]T, v \[\]T\) bool](<#ContainsAny>)
 - [func ContainsBy\[T any\]\(in \[\]T, f func\(T\) bool\) bool](<#ContainsBy>)
 - [func Count\[T any\]\(in \[\]T\) int](<#Count>)
+- [func CountBy\[T any, K comparable\]\(in \[\]T, fn func\(T\) K\) map\[K\]int](<#CountBy>)
 - [func Difference\[T comparable, Slice \~\[\]T\]\(left, right Slice\) \(onlyLeft, onlyRight Slice\)](<#Difference>)
 - [func Filter\[T any, Slice \~\[\]T\]\(in Slice, f func\(T\) bool\) Slice](<#Filter>)
 - [func Find\[T any\]\(in \[\]T, f func\(T\) bool\) \(val T, found bool\)](<#Find>)
 - [func FindO\[T any\]\(in \[\]T, f func\(T\) bool\) optional.O\[T\]](<#FindO>)
 - [func First\[T any, Slice \~\[\]T\]\(in Slice\) \(T, bool\)](<#First>)
 - [func FirstO\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#FirstO>)
+- [func FlatMap\[T any, U any\]\(in \[\]T, fn func\(T\) \[\]U\) \[\]U](<#FlatMap>)
 - [func Flatten\[T any\]\(in \[\]\[\]T\) \[\]T](<#Flatten>)
 - [func ForEach\[T any\]\(in \[\]T, f func\(T\) bool\)](<#ForEach>)
 - [func ForEachIdx\[T any\]\(in \[\]T, f func\(idx int, v T\) bool\)](<#ForEachIdx>)
@@ -39,7 +42,9 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func HeadO\[T any\]\(in \[\]T\) optional.O\[T\]](<#HeadO>)
 - [func Index\[T comparable, Slice \~\[\]T\]\(in Slice, v T\) int](<#Index>)
 - [func Intersect\[T comparable, Slice \~\[\]T\]\(left, right Slice\) Slice](<#Intersect>)
+- [func IsSorted\[T constraints.Ordered\]\(in \[\]T\) bool](<#IsSorted>)
 - [func Join\[T \~string\]\(in \[\]T, sep T\) T](<#Join>)
+- [func KeyBy\[T any, K comparable\]\(in \[\]T, fn func\(T\) K\) map\[K\]T](<#KeyBy>)
 - [func Last\[T any, Slice \~\[\]T\]\(in Slice\) \(T, bool\)](<#Last>)
 - [func LastO\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#LastO>)
 - [func Map\[T any, U any\]\(in \[\]T, f func\(T\) U\) \[\]U](<#Map>)
@@ -48,7 +53,10 @@ import "github.com/dashjay/xiter/pkg/xslice"
 - [func MaxN\[T constraints.Ordered\]\(in ...T\) optional.O\[T\]](<#MaxN>)
 - [func Min\[T constraints.Ordered\]\(in \[\]T\) optional.O\[T\]](<#Min>)
 - [func MinBy\[T constraints.Ordered\]\(in \[\]T, f func\(T, T\) bool\) optional.O\[T\]](<#MinBy>)
+- [func MinMax\[T constraints.Ordered\]\(in \[\]T\) \(min T, max T, ok bool\)](<#MinMax>)
 - [func MinN\[T constraints.Ordered\]\(in ...T\) optional.O\[T\]](<#MinN>)
+- [func Mode\[T comparable\]\(in \[\]T\) optional.O\[T\]](<#Mode>)
+- [func Partition\[T any, Slice \~\[\]T\]\(in Slice, fn func\(T\) bool\) \(yes, no Slice\)](<#Partition>)
 - [func RandomElement\[T any, Slice \~\[\]T\]\(in Slice\) optional.O\[T\]](<#RandomElement>)
 - [func Remove\[T comparable, Slice \~\[\]T\]\(in Slice, wantToRemove ...T\) Slice](<#Remove>)
 - [func Repeat\[T any, Slice \~\[\]T\]\(in Slice, count int\) Slice](<#Repeat>)
@@ -84,6 +92,22 @@ EXAMPLE:
 ```
 xslice.All([]int{1, 2, 3}, func(x int) bool { return x > 0 }) 👉 true
 xslice.All([]int{-1, 1, 2, 3}, func(x int) bool { return x > 0 }) 👉 false
+```
+
+<a name="AllEqual"></a>
+## func [AllEqual](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L1041>)
+
+```go
+func AllEqual[T comparable](in []T) bool
+```
+
+AllEqual checks if all elements in the slice are equal. Empty and single\-element slices are considered to have all equal elements.
+
+EXAMPLE:
+
+```
+xslice.AllEqual([]int{1, 1, 1, 1}) 👉 true
+xslice.AllEqual([]int{1, 2, 1, 1}) 👉 false
 ```
 
 <a name="Any"></a>
@@ -335,6 +359,22 @@ xslice.Count([]int{1, 2, 3}) 👉 3
 xslice.Count([]int{}) 👉 0
 ```
 
+<a name="CountBy"></a>
+## func [CountBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L961>)
+
+```go
+func CountBy[T any, K comparable](in []T, fn func(T) K) map[K]int
+```
+
+CountBy counts occurrences of each key in the slice, returning a map of keys to counts.
+
+EXAMPLE:
+
+```
+xslice.CountBy([]int{1, 2, 3, 2, 1, 2}, func(x int) int { return x })
+// 👉 map[int]int{1: 2, 2: 3, 3: 1}
+```
+
 <a name="Difference"></a>
 ## func [Difference](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L780>)
 
@@ -427,6 +467,22 @@ FirstO returns the first element in the slice as an optional.O\[T\]. If the slic
 ```
 xslice.FirstO([]int{1, 2, 3}) 👉 1
 xslice.FirstO([]int{}) 👉 0
+```
+
+<a name="FlatMap"></a>
+## func [FlatMap](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L1010>)
+
+```go
+func FlatMap[T any, U any](in []T, fn func(T) []U) []U
+```
+
+FlatMap maps each element to a slice and flattens the results into a single slice.
+
+EXAMPLE:
+
+```
+xslice.FlatMap([]int{1, 2, 3}, func(x int) []int { return []int{x, x * 10} })
+// 👉 []int{1, 10, 2, 20, 3, 30}
 ```
 
 <a name="Flatten"></a>
@@ -586,6 +642,22 @@ intersect := xslice.Intersect(left, right)
 fmt.Println(intersect) // [4 5]
 ```
 
+<a name="IsSorted"></a>
+## func [IsSorted](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L1025>)
+
+```go
+func IsSorted[T constraints.Ordered](in []T) bool
+```
+
+IsSorted checks if the slice is sorted in ascending order. Empty and single\-element slices are considered sorted.
+
+EXAMPLE:
+
+```
+xslice.IsSorted([]int{1, 2, 3, 4}) 👉 true
+xslice.IsSorted([]int{1, 3, 2, 4}) 👉 false
+```
+
 <a name="Join"></a>
 ## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L217>)
 
@@ -600,6 +672,22 @@ EXAMPLE:
 ```
 xslice.Join([]string{"1", "2", "3"}, ".") 👉 "1.2.3"
 xslice.Join([]string{}, ".") 👉 ""
+```
+
+<a name="KeyBy"></a>
+## func [KeyBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L976>)
+
+```go
+func KeyBy[T any, K comparable](in []T, fn func(T) K) map[K]T
+```
+
+KeyBy creates a map from the slice using the key function. Later elements overwrite earlier ones for duplicate keys.
+
+EXAMPLE:
+
+```
+xslice.KeyBy([]int{1, 2, 3}, func(x int) int { return x * 10 })
+// 👉 map[int]int{10: 1, 20: 2, 30: 3}
 ```
 
 <a name="Last"></a>
@@ -723,6 +811,22 @@ EXAMPLE:
 xslice.MinBy([]int{3, 2, 1} /*less = */, func(a, b int) bool { return a > b }).Must() 👉 3
 ```
 
+<a name="MinMax"></a>
+## func [MinMax](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L1056>)
+
+```go
+func MinMax[T constraints.Ordered](in []T) (min T, max T, ok bool)
+```
+
+MinMax returns the minimum and maximum elements in the slice in a single pass.
+
+EXAMPLE:
+
+```
+xslice.MinMax([]int{3, 1, 4, 1, 5, 9}) 👉 (1, 9, true)
+xslice.MinMax([]int{}) 👉 (0, 0, false)
+```
+
 <a name="MinN"></a>
 ## func [MinN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L261>)
 
@@ -736,6 +840,38 @@ EXAMPLE:
 
 ```
 xslice.MinN(1, 2, 3) 👉 1
+```
+
+<a name="Mode"></a>
+## func [Mode](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L1080>)
+
+```go
+func Mode[T comparable](in []T) optional.O[T]
+```
+
+Mode returns the most frequently occurring element in the slice. If the slice is empty, it returns an empty optional. If there are multiple modes \(tie\), the first one to reach the maximum count is returned.
+
+EXAMPLE:
+
+```
+xslice.Mode([]int{1, 2, 3, 2, 1, 2}) 👉 2
+xslice.Mode([]int{}) 👉 optional.Empty[int]()
+```
+
+<a name="Partition"></a>
+## func [Partition](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L991>)
+
+```go
+func Partition[T any, Slice ~[]T](in Slice, fn func(T) bool) (yes, no Slice)
+```
+
+Partition splits a slice into two slices based on a predicate. The first return slice contains elements where fn returns true.
+
+EXAMPLE:
+
+```
+yes, no := xslice.Partition([]int{1, 2, 3, 4, 5}, func(x int) bool { return x%2 == 0 })
+// yes 👉 []int{2, 4}, no 👉 []int{1, 3, 5}
 ```
 
 <a name="RandomElement"></a>
