@@ -10,11 +10,13 @@ ROOT_DIR="$SCRIPT_DIR"/..
 
 cd "$ROOT_DIR"
 
-for i in $(ls pkg/)
-do $(go env GOPATH)/bin/gomarkdoc \
-    --repository.url=https://github.com/dashjay/xiter \
-    --repository.default-branch=main \
-    ./pkg/$i/... \
-    --output \
-    ./pkg/$i/README.md
-done
+while IFS= read -r -d '' dir; do
+    i=$(basename "$dir")
+    [[ "$i" == "hack" || "$i" == "doc" || "$i" == ".git" ]] && continue
+    $(go env GOPATH)/bin/gomarkdoc \
+        --repository.url=https://github.com/dashjay/xiter \
+        --repository.default-branch=main \
+        ./$i/... \
+        --output \
+        ./$i/README.md
+done < <(find . -maxdepth 1 -type d -not -name '.' -print0)

@@ -1,0 +1,414 @@
+package xmap
+
+import (
+	"github.com/dashjay/xiter/internal/constraints"
+	"github.com/dashjay/xiter/optional"
+	"github.com/dashjay/xiter/union"
+	"github.com/dashjay/xiter/xsync"
+)
+
+// CoalesceMaps combines multiple maps into a single map. When duplicate keys are encountered,
+// the value from the rightmost (last) map in the input slice takes precedence.
+// It iterates through the input maps, converts them to sequences of key-value pairs,
+// concatenates these sequences, and then converts the combined sequence back into a new map.
+//
+// Parameters:
+//
+//	maps ...M: A variadic slice of maps of type M. Each map must have comparable keys K and values V.
+//
+// Returns:
+//
+//	M: A new map containing all key-value pairs from the input maps, with later maps overriding
+//	   values for duplicate keys.
+//
+// Example:
+//
+//	map1 := map[string]int{"a": 1, "b": 2}
+//	map2 := map[string]int{"b": 3, "c": 4}
+//	map3 := map[string]int{"d": 5}
+//
+//	// CoalesceMaps will combine map1, map2, and map3.
+//	// For key "b", the value 3 from map2 will override 2 from map1.
+//	result := CoalesceMaps(map1, map2, map3)
+//	// result will be map[string]int{"a": 1, "b": 3, "c": 4, "d": 5}
+func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M {
+	result := make(M)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
+}
+
+// Filter filters the map by the given function.
+// Example:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	fn := func(k string, v int) bool {
+//		return v > 1
+//	}
+//	result := Filter(m, fn)
+//	// result will be map[string]int{"b": 2, "c": 3}
+func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M {
+	result := make(M)
+	for k, v := range in {
+		if fn(k, v) {
+			result[k] = v
+		}
+	}
+	return result
+}
+
+// MapValues transforms the values of a map using the provided function while keeping keys unchanged.
+// This is useful for transforming data structures while preserving the key associations.
+//
+// Parameters:
+//
+//	in M: The input map to transform
+//	fn func(K, V1) V2: A function that takes a key and its corresponding value, and returns a new value
+//
+// Returns:
+//
+//	map[K]V2: A new map with the same keys as the input map but with transformed values
+//
+// Example:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	fn := func(k string, v int) string {
+//		return fmt.Sprintf("value_%d", v)
+//	}
+//	result := MapValues(m, fn)
+//	// result will be map[string]string{"a": "value_1", "b": "value_2", "c": "value_3"}
+func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V2 {
+	result := make(map[K]V2, len(in))
+	for k, v := range in {
+		result[k] = fn(k, v)
+	}
+	return result
+}
+
+// MapKeys transforms the keys of a map using the provided function while keeping values unchanged.
+// This is useful for transforming data structures while preserving the value associations.
+//
+// Parameters:
+//
+//	in map[K]V1: The input map to transform
+//	fn func(K, V1) K: A function that takes a key and its corresponding value, and returns a new key
+//
+// Returns:
+//
+//	map[K]V1: A new map with the same values as the input map but with transformed keys
+//
+// Example:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	fn := func(k string, v int) string {
+//		return k + "_key"
+//	}
+//	result := MapKeys(m, fn)
+//	// result will be map[string]int{"a_key": 1, "b_key": 2, "c_key": 3}
+func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1 {
+	result := make(map[K]V1, len(in))
+	for k, v := range in {
+		result[fn(k, v)] = v
+	}
+	return result
+}
+
+// ToXSyncMap converts a map to a xsync.SyncMap.
+//
+// Parameters:
+//
+//	in map[K]V: The input map to convert
+//
+// Returns:
+//
+//	*xsync.SyncMap[K, V]: A new xsync.SyncMap containing the same key-value pairs as the input map
+func ToXSyncMap[K comparable, V any](in map[K]V) *xsync.SyncMap[K, V] {
+	m := xsync.NewSyncMap[K, V]()
+	for k, v := range in {
+		m.Store(k, v)
+	}
+	return m
+}
+
+// FindKey finds a key in the map and returns the key, its value, and whether it was found.
+// This is essentially a wrapper around the built-in map lookup that returns the key along with the value.
+// If the key exists, it returns the key, its value, and true.
+// If the key doesn't exist, it returns the zero key, zero value, and false.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2}
+//	key, value, found := xmap.FindKey(m, "b")
+//	// key="b", value=2, found=true
+//	key, value, found = xmap.FindKey(m, "c")
+//	// key="", value=0, found=false
+func FindKey[K comparable, V any](in map[K]V, target K) (K, V, bool) {
+	v, ok := in[target]
+	if ok {
+		return target, v, ok
+	}
+	var zero K
+	return zero, v, ok
+}
+
+// FindKeyO finds a key in the map and returns the key-value pair as an optional.O[union.U2[K, V]].
+// If the key exists, it returns an optional containing a union.U2 with the key in T1 and value in T2.
+// If the key doesn't exist, it returns an empty optional.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2}
+//	result := xmap.FindKeyO(m, "b")
+//	// result.Ok() == true, result.Must() contains union.U2[string, int]{T1: "b", T2: 2}
+//	key := result.Must().T1 // "b"
+//	value := result.Must().T2 // 2
+//	result2 := xmap.FindKeyO(m, "c")
+//	// result2.Ok() == false
+func FindKeyO[K comparable, V any](in map[K]V, target K) optional.O[union.U2[K, V]] {
+	v, ok := in[target]
+	if ok {
+		return optional.FromValue(union.U2[K, V]{T1: target, T2: v})
+	}
+	return optional.Empty[union.U2[K, V]]()
+}
+
+// Find searches for the first key-value pair in the map that satisfies the given condition function.
+// It returns the key, value, and whether such a pair was found.
+// The search order is not guaranteed to be consistent due to the nature of Go's map iteration.
+// If no pair satisfies the condition, it returns the zero key, zero value, and false.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	key, value, found := xmap.Find(m, func(k string, v int) bool { return v > 1 })
+//	// key could be "b" or "c", value=2 or 3, found=true (first match found)
+//	key, value, found = xmap.Find(m, func(k string, v int) bool { return v > 10 })
+//	// key="", value=0, found=false
+func Find[K comparable, V any](in map[K]V, fn func(K, V) bool) (K, V, bool) {
+	o := FindO(in, fn)
+	z := o.ValueOrZero()
+	return z.T1, z.T2, o.Ok()
+}
+
+// FindO searches for the first key-value pair in the map that satisfies the given condition function.
+// It returns the key-value pair as an optional.O[union.U2[K, V]].
+// The search order is not guaranteed to be consistent due to the nature of Go's map iteration.
+// If a pair satisfies the condition, it returns an optional containing a union.U2 with the key in T1 and value in T2.
+// If no pair satisfies the condition, it returns an empty optional.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2, "c": 3}
+//	result := xmap.FindO(m, func(k string, v int) bool { return v > 1 })
+//	// result.Ok() == true, result.Must() contains union.U2[string, int] with key and value of first match
+//	key := result.Must().T1 // could be "b" or "c"
+//	value := result.Must().T2 // could be 2 or 3
+//	result2 := xmap.FindO(m, func(k string, v int) bool { return v > 10 })
+//	// result2.Ok() == false
+func FindO[K comparable, V any](in map[K]V, fn func(K, V) bool) optional.O[union.U2[K, V]] {
+	for k, v := range in {
+		if fn(k, v) {
+			return optional.FromValue(union.U2[K, V]{T1: k, T2: v})
+		}
+	}
+	return optional.Empty[union.U2[K, V]]()
+}
+
+// Update updates the value for a key in the map and returns the old value and whether it was replaced.
+// If the key exists, it updates the value and returns the old value with replaced=true.
+// If the key doesn't exist, it adds the key-value pair and returns the zero value with replaced=false.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2}
+//	old, replaced := xmap.Update(m, "b", 20)
+//	// old=2, replaced=true, m is now {"a": 1, "b": 20}
+//	old, replaced = xmap.Update(m, "c", 3)
+//	// old=0, replaced=false, m is now {"a": 1, "b": 20, "c": 3}
+func Update[K comparable, V any](m map[K]V, k K, v V) (old V, replaced bool) {
+	o := FindKeyO(m, k)
+	m[k] = v
+	return o.ValueOrZero().T2, o.Ok()
+}
+
+// UpdateIf updates the value for a key in the map only if the condition function returns true.
+// It returns the old value and whether it was replaced.
+// If the key exists and the condition is true, it updates the value and returns the old value with replaced=true.
+// Otherwise, it returns the zero value with replaced=false.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2}
+//	old, replaced := xmap.UpdateIf(m, "b", 20, func(k string, v int) bool { return v > 1 })
+//	// old=2, replaced=true, m is now {"a": 1, "b": 20}
+//	old, replaced = xmap.UpdateIf(m, "b", 200, func(k string, v int) bool { return v > 50 })
+//	// old=0, replaced=false, m remains {"a": 1, "b": 20}
+//	old, replaced = xmap.UpdateIf(m, "c", 3, func(k string, v int) bool { return v > 0 })
+//	// old=0, replaced=false (key doesn't exist), m remains {"a": 1, "b": 20}
+func UpdateIf[K comparable, V any](m map[K]V, k K, v V, c func(K, V) bool) (old V, replaced bool) {
+	o := FindKeyO(m, k)
+	if o.Ok() && c(o.Must().T1, o.Must().T2) {
+		m[k] = v
+		return o.Must().T2, true
+	}
+	return
+}
+
+// Delete removes a key from the map and returns the old value and whether it was deleted.
+// If the key exists, it removes the key-value pair and returns the old value with deleted=true.
+// If the key doesn't exist, it returns the zero value with deleted=false.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2}
+//	old, deleted := xmap.Delete(m, "b")
+//	// old=2, deleted=true, m is now {"a": 1}
+//	old, deleted = xmap.Delete(m, "c")
+//	// old=0, deleted=false, m remains {"a": 1}
+func Delete[K comparable, V any](m map[K]V, k K) (old V, deleted bool) {
+	o := FindKeyO(m, k)
+	delete(m, k)
+	return o.ValueOrZero().T2, o.Ok()
+}
+
+// DeleteIf removes a key from the map only if the condition function returns true.
+// It returns the old value and whether it was deleted.
+// If the key exists and the condition is true, it removes the key-value pair and returns the old value with deleted=true.
+// Otherwise, it returns the zero value with deleted=false.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 2}
+//	old, deleted := xmap.DeleteIf(m, "b", func(k string, v int) bool { return v > 1 })
+//	// old=2, deleted=true, m is now {"a": 1}
+//	old, deleted = xmap.DeleteIf(m, "b", func(k string, v int) bool { return v > 10 })
+//	// old=0, deleted=false, m remains {"a": 1}
+//	old, deleted = xmap.DeleteIf(m, "c", func(k string, v int) bool { return v > 0 })
+//	// old=0, deleted=false (key doesn't exist), m remains {"a": 1}
+func DeleteIf[K comparable, V any](m map[K]V, k K, c func(K, V) bool) (old V, deleted bool) {
+	o := FindKeyO(m, k)
+	if o.Ok() && c(o.Must().T1, o.Must().T2) {
+		delete(m, k)
+		return o.Must().T2, true
+	}
+	return
+}
+
+// MaxKey returns the maximum key in the map and its associated value as an optional.O[union.U2[K, V]].
+// If the map is empty, it returns an optional.O[union.U2[K, V]] with Ok() == false.
+// The returned union.U2 contains the key in T1 and the value in T2.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"b": 2, "a": 1, "c": 3}
+//	result := xmap.MaxKey(m)
+//	// result contains union.U2[string, int]{T1: "c", T2: 3}
+//	maxKey := result.Must().T1 // "c"
+//	maxValue := result.Must().T2 // 3
+//	result2 := xmap.MaxKey(map[string]int{})
+//	// result2.Ok() == false
+func MaxKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]] {
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
+	}
+	var maxK K
+	var maxV V
+	first := true
+	for k, v := range m {
+		if first || k > maxK {
+			maxK, maxV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: maxK, T2: maxV})
+}
+
+// MinKey returns the minimum key in the map and its associated value as an optional.O[union.U2[K, V]].
+// If the map is empty, it returns an optional.O[union.U2[K, V]] with Ok() == false.
+// The returned union.U2 contains the key in T1 and the value in T2.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"b": 2, "a": 1, "c": 3}
+//	result := xmap.MinKey(m)
+//	// result contains union.U2[string, int]{T1: "a", T2: 1}
+//	minKey := result.Must().T1 // "a"
+//	minValue := result.Must().T2 // 1
+//	result2 := xmap.MinKey(map[string]int{})
+//	// result2.Ok() == false
+func MinKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]] {
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
+	}
+	var minK K
+	var minV V
+	first := true
+	for k, v := range m {
+		if first || k < minK {
+			minK, minV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: minK, T2: minV})
+}
+
+// MaxValue returns the maximum value in the map and its associated key as an optional.O[union.U2[K, V]].
+// If the map is empty, it returns an optional.O[union.U2[K, V]] with Ok() == false.
+// The returned union.U2 contains the key in T1 and the maximum value in T2.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 1, "b": 3, "c": 2}
+//	result := xmap.MaxValue(m)
+//	// result contains union.U2[string, int]{T1: "b", T2: 3}
+//	maxKey := result.Must().T1 // "b"
+//	maxValue := result.Must().T2 // 3
+//	result2 := xmap.MaxValue(map[string]int{})
+//	// result2.Ok() == false
+func MaxValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]] {
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
+	}
+	var maxK K
+	var maxV V
+	first := true
+	for k, v := range m {
+		if first || v > maxV {
+			maxK, maxV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: maxK, T2: maxV})
+}
+
+// MinValue returns the minimum value in the map and its associated key as an optional.O[union.U2[K, V]].
+// If the map is empty, it returns an optional.O[union.U2[K, V]] with Ok() == false.
+// The returned union.U2 contains the key in T1 and the minimum value in T2.
+//
+// EXAMPLE:
+//
+//	m := map[string]int{"a": 3, "b": 1, "c": 2}
+//	result := xmap.MinValue(m)
+//	// result contains union.U2[string, int]{T1: "b", T2: 1}
+//	minKey := result.Must().T1 // "b"
+//	minValue := result.Must().T2 // 1
+//	result2 := xmap.MinValue(map[string]int{})
+//	// result2.Ok() == false
+func MinValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]] {
+	if len(m) == 0 {
+		return optional.Empty[union.U2[K, V]]()
+	}
+	var minK K
+	var minV V
+	first := true
+	for k, v := range m {
+		if first || v < minV {
+			minK, minV = k, v
+			first = false
+		}
+	}
+	return optional.FromValue(union.U2[K, V]{T1: minK, T2: minV})
+}
