@@ -5,11 +5,14 @@ package xmap
 
 import (
 	"github.com/dashjay/xiter/pkg/union"
-	"github.com/dashjay/xiter/pkg/xiter"
 )
 
 func Clone[M ~map[K]V, K comparable, V any](m M) M {
-	return xiter.ToMap(xiter.FromMapKeyAndValues(m))
+	result := make(M, len(m))
+	for k, v := range m {
+		result[k] = v
+	}
+	return result
 }
 
 func Equal[M1, M2 ~map[K]V, K, V comparable](m1 M1, m2 M2) bool {
@@ -43,13 +46,25 @@ func Copy[M1 ~map[K]V, M2 ~map[K]V, K comparable, V any](dst M1, src M2) {
 }
 
 func Keys[M ~map[K]V, K comparable, V any](m M) []K {
-	return xiter.ToSlice(xiter.FromMapKeys(m))
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func Values[M ~map[K]V, K comparable, V any](m M) []V {
-	return xiter.ToSlice(xiter.FromMapValues(m))
+	vals := make([]V, 0, len(m))
+	for _, v := range m {
+		vals = append(vals, v)
+	}
+	return vals
 }
 
 func ToUnionSlice[M ~map[K]V, K comparable, V any](m M) []union.U2[K, V] {
-	return xiter.ToSlice(xiter.Seq2ToSeqUnion(xiter.FromMapKeyAndValues(m)))
+	result := make([]union.U2[K, V], 0, len(m))
+	for k, v := range m {
+		result = append(result, union.U2[K, V]{T1: k, T2: v})
+	}
+	return result
 }

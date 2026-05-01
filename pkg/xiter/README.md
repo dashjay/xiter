@@ -52,6 +52,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
 - [func Reduce\[Sum, V any\]\(f func\(Sum, V\) Sum, sum Sum, seq Seq\[V\]\) Sum](<#Reduce>)
 - [func Reduce2\[Sum, K, V any\]\(f func\(Sum, K, V\) Sum, sum Sum, seq Seq2\[K, V\]\) Sum](<#Reduce2>)
 - [func Sum\[T constraints.Number\]\(seq Seq\[T\]\) T](<#Sum>)
+- [func ToChan\[T any\]\(seq Seq\[T\]\) \<\-chan T](<#ToChan>)
 - [func ToMap\[K comparable, V any\]\(seq Seq2\[K, V\]\) \(out map\[K\]V\)](<#ToMap>)
 - [func ToMapFromSeq\[K comparable, V any\]\(seq Seq\[K\], fn func\(k K\) V\) \(out map\[K\]V\)](<#ToMapFromSeq>)
 - [func ToSlice\[T any\]\(seq Seq\[T\]\) \(out \[\]T\)](<#ToSlice>)
@@ -62,6 +63,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func Chunk\[T any\]\(seq Seq\[T\], n int\) Seq\[\[\]T\]](<#Chunk>)
   - [func Compact\[T comparable\]\(in Seq\[T\]\) Seq\[T\]](<#Compact>)
   - [func Concat\[V any\]\(seqs ...Seq\[V\]\) Seq\[V\]](<#Concat>)
+  - [func Cycle\[T any\]\(seq Seq\[T\]\) Seq\[T\]](<#Cycle>)
   - [func Filter\[V any\]\(f func\(V\) bool, seq Seq\[V\]\) Seq\[V\]](<#Filter>)
   - [func FromChan\[T any\]\(in \<\-chan T\) Seq\[T\]](<#FromChan>)
   - [func FromMapKeys\[K comparable, V any\]\(m map\[K\]V\) Seq\[K\]](<#FromMapKeys>)
@@ -69,11 +71,13 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func FromSlice\[T any\]\(in \[\]T\) Seq\[T\]](<#FromSlice>)
   - [func FromSliceReverse\[T any, Slice \~\[\]T\]\(in Slice\) Seq\[T\]](<#FromSliceReverse>)
   - [func FromSliceShuffle\[T any\]\(in \[\]T\) Seq\[T\]](<#FromSliceShuffle>)
+  - [func Generate\[T any\]\(fn func\(\) T\) Seq\[T\]](<#Generate>)
   - [func Intersect\[T comparable\]\(left Seq\[T\], right Seq\[T\]\) Seq\[T\]](<#Intersect>)
   - [func Limit\[V any\]\(seq Seq\[V\], n int\) Seq\[V\]](<#Limit>)
   - [func Map\[In, Out any\]\(f func\(In\) Out, seq Seq\[In\]\) Seq\[Out\]](<#Map>)
   - [func Merge\[V xcmp.Ordered\]\(x, y Seq\[V\]\) Seq\[V\]](<#Merge>)
   - [func MergeFunc\[V any\]\(x, y Seq\[V\], f func\(V, V\) int\) Seq\[V\]](<#MergeFunc>)
+  - [func Range\[T constraints.Integer\]\(start, end, step T\) Seq\[T\]](<#Range>)
   - [func Repeat\[T any\]\(seq Seq\[T\], count int\) Seq\[T\]](<#Repeat>)
   - [func Replace\[T comparable\]\(seq Seq\[T\], from, to T, n int\) Seq\[T\]](<#Replace>)
   - [func ReplaceAll\[T comparable\]\(seq Seq\[T\], from, to T\) Seq\[T\]](<#ReplaceAll>)
@@ -97,6 +101,7 @@ WARNING: golang 1.23 has higher performance on iterating Seq/Seq2 which boost by
   - [func MapToSeq2Value\[T any, K comparable, V any\]\(in Seq\[T\], mapFn func\(ele T\) \(K, V\)\) Seq2\[K, V\]](<#MapToSeq2Value>)
   - [func Merge2\[K xcmp.Ordered, V any\]\(x, y Seq2\[K, V\]\) Seq2\[K, V\]](<#Merge2>)
   - [func MergeFunc2\[K, V any\]\(x, y Seq2\[K, V\], f func\(K, K\) int\) Seq2\[K, V\]](<#MergeFunc2>)
+  - [func WithIndex\[T any\]\(seq Seq\[T\]\) Seq2\[int, T\]](<#WithIndex>)
 - [type Zipped](<#Zipped>)
 - [type Zipped2](<#Zipped2>)
 
@@ -730,6 +735,25 @@ sum := xiter.Sum(seq)
 // sum is 15
 ```
 
+<a name="ToChan"></a>
+## func [ToChan](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L293>)
+
+```go
+func ToChan[T any](seq Seq[T]) <-chan T
+```
+
+ToChan sends all elements of seq to a returned channel and closes it when the seq is exhausted.
+
+EXAMPLE:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3})
+ch := xiter.ToChan(seq)
+for v := range ch {
+	fmt.Println(v)
+}
+```
+
 <a name="ToMap"></a>
 ## func [ToMap](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L504>)
 
@@ -894,6 +918,22 @@ func main() {
 </p>
 </details>
 
+<a name="Cycle"></a>
+### func [Cycle](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L249>)
+
+```go
+func Cycle[T any](seq Seq[T]) Seq[T]
+```
+
+Cycle returns a Seq that infinitely repeats the elements of seq. The input seq is materialized once, then cycled in memory.
+
+EXAMPLE:
+
+```
+seq := xiter.Cycle(xiter.FromSlice([]int{1, 2, 3}))
+// seq will yield: 1, 2, 3, 1, 2, 3, 1, 2, 3, ...
+```
+
 <a name="Filter"></a>
 ### func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter.go#L142>)
 
@@ -1015,6 +1055,23 @@ Example:
 seq := FromSlice([]int{1, 2, 3, 4, 5})
 shuffledSeq := FromSliceShuffle(ToSlice(seq))
 // shuffledSeq will yield a shuffled sequence of 1, 2, 3, 4, 5
+```
+
+<a name="Generate"></a>
+### func [Generate](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L277>)
+
+```go
+func Generate[T any](fn func() T) Seq[T]
+```
+
+Generate returns an infinite Seq where each element is produced by calling fn. The sequence is unbounded; use with Limit, TakeWhile, etc. to constrain.
+
+EXAMPLE:
+
+```
+seq := xiter.Generate(func() int { return rand.Intn(100) })
+first5 := xiter.ToSlice(xiter.Limit(seq, 5))
+// first5 contains 5 random numbers
 ```
 
 <a name="Intersect"></a>
@@ -1183,6 +1240,25 @@ func MergeFunc[V any](x, y Seq[V], f func(V, V) int) Seq[V]
 ```
 
 MergeFunc merges two sequences of values ordered by the function f. Values appear in the output once for each time they appear in x and once for each time they appear in y. When equal values appear in both sequences, the output contains the values from x before the values from y. If the two input sequences are not ordered by f, the output sequence will not be ordered by f, but it will still contain every value from x and y exactly once.
+
+<a name="Range"></a>
+### func [Range](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L317>)
+
+```go
+func Range[T constraints.Integer](start, end, step T) Seq[T]
+```
+
+Range returns a Seq of integers from start to end, stepping by step. If step \> 0, elements are yielded while i \< end. If step \< 0, elements are yielded while i \> end. If step == 0, an empty sequence is returned.
+
+EXAMPLE:
+
+```
+seq := xiter.Range(0, 10, 2)
+// seq will yield: 0, 2, 4, 6, 8
+
+seq = xiter.Range(10, 0, -3)
+// seq will yield: 10, 7, 4, 1
+```
 
 <a name="Repeat"></a>
 ### func [Repeat](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L84>)
@@ -1519,6 +1595,28 @@ func MergeFunc2[K, V any](x, y Seq2[K, V], f func(K, K) int) Seq2[K, V]
 ```
 
 MergeFunc2 merges two sequences of key\-value pairs ordered by the function f. Pairs appear in the output once for each time they appear in x and once for each time they appear in y. When pairs with equal keys appear in both sequences, the output contains the pairs from x before the pairs from y. If the two input sequences are not ordered by f, the output sequence will not be ordered by f, but it will still contain every pair from x and y exactly once.
+
+<a name="WithIndex"></a>
+### func [WithIndex](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L347>)
+
+```go
+func WithIndex[T any](seq Seq[T]) Seq2[int, T]
+```
+
+WithIndex returns a Seq2 that pairs each element from seq with its 0\-based index.
+
+EXAMPLE:
+
+```
+seq := xiter.FromSlice([]string{"a", "b", "c"})
+for idx, v := range xiter.WithIndex(seq) {
+	fmt.Println(idx, v)
+}
+// output:
+// 0 a
+// 1 b
+// 2 c
+```
 
 <a name="Zipped"></a>
 ## type [Zipped](<https://github.com/dashjay/xiter/blob/main/pkg/xiter/xiter_common.go#L22-L27>)

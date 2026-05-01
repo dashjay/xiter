@@ -35,7 +35,7 @@ import "github.com/dashjay/xiter/pkg/xmap"
 
 
 <a name="Clone"></a>
-## func [Clone](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L13>)
+## func [Clone](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L12>)
 
 ```go
 func Clone[M ~map[K]V, K comparable, V any](m M) M
@@ -44,7 +44,7 @@ func Clone[M ~map[K]V, K comparable, V any](m M) M
 
 
 <a name="CoalesceMaps"></a>
-## func [CoalesceMaps](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L35>)
+## func [CoalesceMaps](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L34>)
 
 ```go
 func CoalesceMaps[M ~map[K]V, K comparable, V any](maps ...M) M
@@ -79,7 +79,7 @@ result := CoalesceMaps(map1, map2, map3)
 ```
 
 <a name="Copy"></a>
-## func [Copy](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L25>)
+## func [Copy](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L24>)
 
 ```go
 func Copy[M1 ~map[K]V, M2 ~map[K]V, K comparable, V any](dst M1, src M2)
@@ -88,7 +88,7 @@ func Copy[M1 ~map[K]V, M2 ~map[K]V, K comparable, V any](dst M1, src M2)
 
 
 <a name="Delete"></a>
-## func [Delete](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L256>)
+## func [Delete](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L271>)
 
 ```go
 func Delete[K comparable, V any](m map[K]V, k K) (old V, deleted bool)
@@ -107,7 +107,7 @@ old, deleted = xmap.Delete(m, "c")
 ```
 
 <a name="DeleteIf"></a>
-## func [DeleteIf](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L276>)
+## func [DeleteIf](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L291>)
 
 ```go
 func DeleteIf[K comparable, V any](m map[K]V, k K, c func(K, V) bool) (old V, deleted bool)
@@ -128,7 +128,7 @@ old, deleted = xmap.DeleteIf(m, "c", func(k string, v int) bool { return v > 0 }
 ```
 
 <a name="Equal"></a>
-## func [Equal](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L17>)
+## func [Equal](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L16>)
 
 ```go
 func Equal[M1, M2 ~map[K]V, K, V comparable](m1 M1, m2 M2) bool
@@ -137,7 +137,7 @@ func Equal[M1, M2 ~map[K]V, K, V comparable](m1 M1, m2 M2) bool
 
 
 <a name="EqualFunc"></a>
-## func [EqualFunc](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L21>)
+## func [EqualFunc](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L20>)
 
 ```go
 func EqualFunc[M1 ~map[K]V1, M2 ~map[K]V2, K comparable, V1, V2 any](m1 M1, m2 M2, eq func(V1, V2) bool) bool
@@ -146,7 +146,7 @@ func EqualFunc[M1 ~map[K]V1, M2 ~map[K]V2, K comparable, V1, V2 any](m1 M1, m2 M
 
 
 <a name="Filter"></a>
-## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L52>)
+## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L53>)
 
 ```go
 func Filter[M ~map[K]V, K comparable, V any](in M, fn func(K, V) bool) M
@@ -164,7 +164,7 @@ result := Filter(m, fn)
 ```
 
 <a name="Find"></a>
-## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L175>)
+## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L190>)
 
 ```go
 func Find[K comparable, V any](in map[K]V, fn func(K, V) bool) (K, V, bool)
@@ -183,7 +183,7 @@ key, value, found = xmap.Find(m, func(k string, v int) bool { return v > 10 })
 ```
 
 <a name="FindKey"></a>
-## func [FindKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L133>)
+## func [FindKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L148>)
 
 ```go
 func FindKey[K comparable, V any](in map[K]V, target K) (K, V, bool)
@@ -202,7 +202,7 @@ key, value, found = xmap.FindKey(m, "c")
 ```
 
 <a name="FindKeyO"></a>
-## func [FindKeyO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L155>)
+## func [FindKeyO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L170>)
 
 ```go
 func FindKeyO[K comparable, V any](in map[K]V, target K) optional.O[union.U2[K, V]]
@@ -223,7 +223,7 @@ result2 := xmap.FindKeyO(m, "c")
 ```
 
 <a name="FindO"></a>
-## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L196>)
+## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L211>)
 
 ```go
 func FindO[K comparable, V any](in map[K]V, fn func(K, V) bool) optional.O[union.U2[K, V]]
@@ -244,7 +244,7 @@ result2 := xmap.FindO(m, func(k string, v int) bool { return v > 10 })
 ```
 
 <a name="Keys"></a>
-## func [Keys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L29>)
+## func [Keys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L28>)
 
 ```go
 func Keys[M ~map[K]V, K comparable, V any](m M) []K
@@ -253,7 +253,7 @@ func Keys[M ~map[K]V, K comparable, V any](m M) []K
 
 
 <a name="MapKeys"></a>
-## func [MapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L100>)
+## func [MapKeys](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L111>)
 
 ```go
 func MapKeys[K comparable, V1 any](in map[K]V1, fn func(K, V1) K) map[K]V1
@@ -286,7 +286,7 @@ result := MapKeys(m, fn)
 ```
 
 <a name="MapValues"></a>
-## func [MapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L76>)
+## func [MapValues](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L83>)
 
 ```go
 func MapValues[K comparable, V1, V2 any](in map[K]V1, fn func(K, V1) V2) map[K]V2
@@ -319,7 +319,7 @@ result := MapValues(m, fn)
 ```
 
 <a name="MaxKey"></a>
-## func [MaxKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L298>)
+## func [MaxKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L313>)
 
 ```go
 func MaxKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]]
@@ -340,7 +340,7 @@ result2 := xmap.MaxKey(map[string]int{})
 ```
 
 <a name="MaxValue"></a>
-## func [MaxValue](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L340>)
+## func [MaxValue](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L371>)
 
 ```go
 func MaxValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]]
@@ -361,7 +361,7 @@ result2 := xmap.MaxValue(map[string]int{})
 ```
 
 <a name="MinKey"></a>
-## func [MinKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L319>)
+## func [MinKey](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L342>)
 
 ```go
 func MinKey[K constraints.Ordered, V any](m map[K]V) optional.O[union.U2[K, V]]
@@ -382,7 +382,7 @@ result2 := xmap.MinKey(map[string]int{})
 ```
 
 <a name="MinValue"></a>
-## func [MinValue](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L360>)
+## func [MinValue](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L400>)
 
 ```go
 func MinValue[K comparable, V constraints.Ordered](m map[K]V) optional.O[union.U2[K, V]]
@@ -403,7 +403,7 @@ result2 := xmap.MinValue(map[string]int{})
 ```
 
 <a name="ToUnionSlice"></a>
-## func [ToUnionSlice](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L37>)
+## func [ToUnionSlice](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L44>)
 
 ```go
 func ToUnionSlice[M ~map[K]V, K comparable, V any](m M) []union.U2[K, V]
@@ -412,7 +412,7 @@ func ToUnionSlice[M ~map[K]V, K comparable, V any](m M) []union.U2[K, V]
 
 
 <a name="ToXSyncMap"></a>
-## func [ToXSyncMap](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L113>)
+## func [ToXSyncMap](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L128>)
 
 ```go
 func ToXSyncMap[K comparable, V any](in map[K]V) *xsync.SyncMap[K, V]
@@ -433,7 +433,7 @@ Returns:
 ```
 
 <a name="Update"></a>
-## func [Update](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L216>)
+## func [Update](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L231>)
 
 ```go
 func Update[K comparable, V any](m map[K]V, k K, v V) (old V, replaced bool)
@@ -452,7 +452,7 @@ old, replaced = xmap.Update(m, "c", 3)
 ```
 
 <a name="UpdateIf"></a>
-## func [UpdateIf](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L236>)
+## func [UpdateIf](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap_common.go#L251>)
 
 ```go
 func UpdateIf[K comparable, V any](m map[K]V, k K, v V, c func(K, V) bool) (old V, replaced bool)
@@ -473,7 +473,7 @@ old, replaced = xmap.UpdateIf(m, "c", 3, func(k string, v int) bool { return v >
 ```
 
 <a name="Values"></a>
-## func [Values](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L33>)
+## func [Values](<https://github.com/dashjay/xiter/blob/main/pkg/xmap/xmap.go#L36>)
 
 ```go
 func Values[M ~map[K]V, K comparable, V any](m M) []V

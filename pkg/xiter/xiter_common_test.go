@@ -127,5 +127,79 @@ func TestXIterCommon(t *testing.T) {
 		}
 		assert.Equal(t, xiter.ToMapFromSeq(xiter.Union(left, right), ut),
 			xiter.ToMapFromSeq(xiter.Union(right, left), ut))
-	})
+		})
+
+		t.Run("cycle", func(t *testing.T) {
+			seq := xiter.Cycle(xiter.FromSlice([]int{1, 2, 3}))
+			first9 := xiter.ToSlice(xiter.Limit(seq, 9))
+			assert.Equal(t, []int{1, 2, 3, 1, 2, 3, 1, 2, 3}, first9)
+
+			emptyCycle := xiter.Cycle(xiter.FromSlice([]int{}))
+			assert.Len(t, xiter.ToSlice(emptyCycle), 0)
+
+			singleCycle := xiter.Cycle(xiter.FromSlice([]int{42}))
+			first5 := xiter.ToSlice(xiter.Limit(singleCycle, 5))
+			assert.Equal(t, []int{42, 42, 42, 42, 42}, first5)
+		})
+
+		t.Run("generate", func(t *testing.T) {
+			i := 0
+			gen := xiter.Generate(func() int {
+				i++
+				return i
+			})
+			first5 := xiter.ToSlice(xiter.Limit(gen, 5))
+			assert.Equal(t, []int{1, 2, 3, 4, 5}, first5)
+
+			assert.Len(t, xiter.ToSlice(xiter.Limit(gen, 0)), 0)
+		})
+
+		t.Run("to chan", func(t *testing.T) {
+			seq := xiter.FromSlice(_range(0, 10))
+			ch := xiter.ToChan(seq)
+			var result []int
+			for v := range ch {
+				result = append(result, v)
+			}
+			assert.Equal(t, _range(0, 10), result)
+
+			emptyCh := xiter.ToChan(xiter.FromSlice([]int{}))
+			var emptyResult []int
+			for v := range emptyCh {
+				emptyResult = append(emptyResult, v)
+			}
+			assert.Len(t, emptyResult, 0)
+		})
+
+		t.Run("range", func(t *testing.T) {
+			r := xiter.ToSlice(xiter.Range(0, 10, 2))
+			assert.Equal(t, []int{0, 2, 4, 6, 8}, r)
+
+			r2 := xiter.ToSlice(xiter.Range(10, 0, -3))
+			assert.Equal(t, []int{10, 7, 4, 1}, r2)
+
+			assert.Len(t, xiter.ToSlice(xiter.Range(0, 0, 1)), 0)
+			assert.Len(t, xiter.ToSlice(xiter.Range(5, 0, 1)), 0)
+			assert.Len(t, xiter.ToSlice(xiter.Range(0, 5, -1)), 0)
+			assert.Len(t, xiter.ToSlice(xiter.Range(0, 10, 0)), 0)
+
+			r3 := xiter.ToSlice(xiter.Range(0, 100, 1000))
+			assert.Equal(t, []int{0}, r3)
+
+			r4 := xiter.ToSlice(xiter.Range(0, 5, 1))
+			assert.Equal(t, []int{0, 1, 2, 3, 4}, r4)
+		})
+
+		t.Run("with index", func(t *testing.T) {
+			seq := xiter.FromSlice([]string{"a", "b", "c"})
+			idxSeq := xiter.WithIndex(seq)
+
+			collected := xiter.ToSliceSeq2Key(idxSeq)
+			assert.Equal(t, []int{0, 1, 2}, collected)
+			values := xiter.ToSliceSeq2Value(idxSeq)
+			assert.Equal(t, []string{"a", "b", "c"}, values)
+
+			emptyIdx := xiter.WithIndex(xiter.FromSlice([]int{}))
+			assert.Len(t, xiter.ToSliceSeq2Key(emptyIdx), 0)
+		})
 }

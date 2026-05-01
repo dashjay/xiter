@@ -488,4 +488,157 @@ func TestSlices(t *testing.T) {
 		assert.Contains(t, strings, elem4.Must())
 	})
 
+	t.Run("count by", func(t *testing.T) {
+		result := xslice.CountBy([]int{1, 2, 3, 2, 1, 2}, func(x int) int { return x })
+		assert.Equal(t, map[int]int{1: 2, 2: 3, 3: 1}, result)
+
+		result2 := xslice.CountBy([]int{}, func(x int) int { return x })
+		assert.Equal(t, map[int]int{}, result2)
+
+		result3 := xslice.CountBy([]string{"a", "b", "a", "c", "b", "b"}, func(s string) string { return s })
+		assert.Equal(t, map[string]int{"a": 2, "b": 3, "c": 1}, result3)
+
+		result4 := xslice.CountBy([]int{1, 2, 3, 4, 5, 6}, func(x int) string {
+			if x%2 == 0 {
+				return "even"
+			}
+			return "odd"
+		})
+		assert.Equal(t, map[string]int{"even": 3, "odd": 3}, result4)
+	})
+
+	t.Run("key by", func(t *testing.T) {
+		result := xslice.KeyBy([]int{1, 2, 3}, func(x int) int { return x * 10 })
+		assert.Equal(t, map[int]int{10: 1, 20: 2, 30: 3}, result)
+
+		result2 := xslice.KeyBy([]int{1, 2, 3, 1}, func(x int) int { return x })
+		assert.Equal(t, map[int]int{1: 1, 2: 2, 3: 3}, result2)
+
+		result3 := xslice.KeyBy([]int{}, func(x int) int { return x })
+		assert.Equal(t, map[int]int{}, result3)
+
+		type person struct {
+			name string
+			age  int
+		}
+		people := []person{{"alice", 30}, {"bob", 25}, {"charlie", 35}}
+		result4 := xslice.KeyBy(people, func(p person) string { return p.name })
+		assert.Equal(t, map[string]person{"alice": {"alice", 30}, "bob": {"bob", 25}, "charlie": {"charlie", 35}}, result4)
+	})
+
+	t.Run("partition", func(t *testing.T) {
+		yes, no := xslice.Partition([]int{1, 2, 3, 4, 5}, func(x int) bool { return x%2 == 0 })
+		assert.Equal(t, []int{2, 4}, yes)
+		assert.Equal(t, []int{1, 3, 5}, no)
+
+		yes2, no2 := xslice.Partition([]int{1, 2, 3}, func(x int) bool { return true })
+		assert.Equal(t, []int{1, 2, 3}, yes2)
+		assert.Equal(t, []int{}, no2)
+
+		yes3, no3 := xslice.Partition([]int{1, 2, 3}, func(x int) bool { return false })
+		assert.Equal(t, []int{}, yes3)
+		assert.Equal(t, []int{1, 2, 3}, no3)
+
+		yes4, no4 := xslice.Partition([]int{}, func(x int) bool { return true })
+		assert.Equal(t, []int{}, yes4)
+		assert.Equal(t, []int{}, no4)
+	})
+
+	t.Run("flat map", func(t *testing.T) {
+		result := xslice.FlatMap([]int{1, 2, 3}, func(x int) []int { return []int{x, x * 10} })
+		assert.Equal(t, []int{1, 10, 2, 20, 3, 30}, result)
+
+		result2 := xslice.FlatMap([]int{1, 2, 3}, func(x int) []int { return nil })
+		assert.Equal(t, []int{}, result2)
+
+		result3 := xslice.FlatMap([]int{}, func(x int) []int { return []int{x} })
+		assert.Equal(t, []int{}, result3)
+
+		result4 := xslice.FlatMap([]int{1, 2, 3}, func(x int) []int {
+			if x%2 == 0 {
+				return []int{x}
+			}
+			return nil
+		})
+		assert.Equal(t, []int{2}, result4)
+
+		result5 := xslice.FlatMap([]string{"ab", "cd"}, func(s string) []byte { return []byte(s) })
+		assert.Equal(t, []byte{'a', 'b', 'c', 'd'}, result5)
+	})
+
+	t.Run("is sorted", func(t *testing.T) {
+		assert.True(t, xslice.IsSorted([]int{1, 2, 3, 4}))
+		assert.True(t, xslice.IsSorted([]int{1, 1, 2, 3}))
+		assert.False(t, xslice.IsSorted([]int{1, 3, 2, 4}))
+		assert.False(t, xslice.IsSorted([]int{4, 3, 2, 1}))
+		assert.True(t, xslice.IsSorted([]int{}))
+		assert.True(t, xslice.IsSorted([]int{1}))
+		assert.True(t, xslice.IsSorted([]int{1, 1}))
+	})
+
+	t.Run("all equal", func(t *testing.T) {
+		assert.True(t, xslice.AllEqual([]int{1, 1, 1, 1}))
+		assert.False(t, xslice.AllEqual([]int{1, 2, 1, 1}))
+		assert.False(t, xslice.AllEqual([]int{1, 1, 1, 2}))
+		assert.True(t, xslice.AllEqual([]int{}))
+		assert.True(t, xslice.AllEqual([]int{42}))
+		assert.True(t, xslice.AllEqual([]int{1, 1}))
+		assert.True(t, xslice.AllEqual([]string{"a", "a", "a"}))
+	})
+
+	t.Run("min max", func(t *testing.T) {
+		min, max, ok := xslice.MinMax([]int{3, 1, 4, 1, 5, 9})
+		assert.Equal(t, 1, min)
+		assert.Equal(t, 9, max)
+		assert.True(t, ok)
+
+		min2, max2, ok2 := xslice.MinMax([]int{42})
+		assert.Equal(t, 42, min2)
+		assert.Equal(t, 42, max2)
+		assert.True(t, ok2)
+
+		min3, max3, ok3 := xslice.MinMax([]int{5, 5, 5})
+		assert.Equal(t, 5, min3)
+		assert.Equal(t, 5, max3)
+		assert.True(t, ok3)
+
+		_, _, ok4 := xslice.MinMax([]int{})
+		assert.False(t, ok4)
+
+		min5, max5, ok5 := xslice.MinMax([]int{-5, -2, -10, -1})
+		assert.Equal(t, -10, min5)
+		assert.Equal(t, -1, max5)
+		assert.True(t, ok5)
+
+		min6, max6, ok6 := xslice.MinMax([]string{"a", "z", "m", "b"})
+		assert.Equal(t, "a", min6)
+		assert.Equal(t, "z", max6)
+		assert.True(t, ok6)
+	})
+
+	t.Run("mode", func(t *testing.T) {
+		mode := xslice.Mode([]int{1, 2, 3, 2, 1, 2})
+		assert.True(t, mode.Ok())
+		assert.Equal(t, 2, mode.Must())
+
+		mode2 := xslice.Mode([]int{42})
+		assert.True(t, mode2.Ok())
+		assert.Equal(t, 42, mode2.Must())
+
+		mode3 := xslice.Mode([]int{1, 2, 3, 4})
+		assert.True(t, mode3.Ok())
+		assert.Equal(t, 1, mode3.Must())
+
+		mode4 := xslice.Mode([]int{})
+		assert.False(t, mode4.Ok())
+
+		mode5 := xslice.Mode([]string{"a", "b", "a", "c", "b", "b"})
+		assert.True(t, mode5.Ok())
+		assert.Equal(t, "b", mode5.Must())
+
+		mode6 := xslice.Mode([]int{1, 1, 2, 2})
+		assert.True(t, mode6.Ok())
+		assert.Equal(t, 1, mode6.Must())
+	})
+
 }
