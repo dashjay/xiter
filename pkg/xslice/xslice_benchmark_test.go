@@ -201,24 +201,38 @@ func BenchmarkSlice(b *testing.B) {
 }
 
 func BenchmarkChunk(b *testing.B) {
-	b.Run("xslice", func(b *testing.B) {
-		arr := _range(0, 1000)
-		for i := 1; i < b.N; i++ {
-			xslice.Chunk(arr, i)
-		}
-	})
+	sizes := []struct {
+		name      string
+		nElements int
+		chunkSize int
+	}{
+		{"small-chunks-10k-elems", 10_000, 10},
+		{"large-chunks-10k-elems", 10_000, 1000},
+	}
 
-	b.Run("xslice-inplace", func(b *testing.B) {
-		arr := _range(0, 1000)
-		for i := 1; i < b.N; i++ {
-			xslice.ChunkInPlace(arr, i)
-		}
-	})
+	for _, tc := range sizes {
+		b.Run("xslice-seq/"+tc.name, func(b *testing.B) {
+			arr := _range(0, tc.nElements)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_ = xslice.Chunk(arr, tc.chunkSize)
+			}
+		})
 
-	b.Run("lo", func(b *testing.B) {
-		arr := _range(0, 1000)
-		for i := 1; i < b.N; i++ {
-			lo.Chunk(arr, i)
-		}
-	})
+		b.Run("xslice-inplace/"+tc.name, func(b *testing.B) {
+			arr := _range(0, tc.nElements)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_ = xslice.ChunkInPlace(arr, tc.chunkSize)
+			}
+		})
+
+		b.Run("lo/"+tc.name, func(b *testing.B) {
+			arr := _range(0, tc.nElements)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_ = lo.Chunk(arr, tc.chunkSize)
+			}
+		})
+	}
 }

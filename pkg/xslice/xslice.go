@@ -457,14 +457,14 @@ func ShuffleInPlace[T any, Slice ~[]T](in Slice) {
 //	xslice.Chunk([]int{1, 2, 3, 4, 5}, 0) 👉 []int{}
 func Chunk[T any, Slice ~[]T](in Slice, chunkSize int) []Slice {
 	xassert.MustBePositive(chunkSize)
-	out := make([]Slice, 0, len(in)/chunkSize+1)
-	seq := xiter.FromSlice(in)
-	for {
-		res := xiter.ToSlice(xiter.Limit(xiter.Skip(seq, len(out)*chunkSize), chunkSize))
-		if len(res) == 0 {
-			break
+	n := len(in)
+	out := make([]Slice, 0, n/chunkSize+1)
+	for i := 0; i < n; i += chunkSize {
+		end := i + chunkSize
+		if end > n {
+			end = n
 		}
-		out = append(out, res)
+		out = append(out, append(Slice(nil), in[i:end]...))
 	}
 	return out
 }
