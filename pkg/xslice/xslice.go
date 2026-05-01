@@ -747,5 +747,8 @@ func Sample[T any, Slice ~[]T](in Slice, n int) Slice {
 //	xslice.RandomElement([]int{42}) 👉 42 (always returns the only element)
 //	xslice.RandomElement([]int{}).Ok() 👉 false
 func RandomElement[T any, Slice ~[]T](in Slice) optional.O[T] {
-	return xiter.FirstO(xiter.FromSliceShuffle(in))
+	if len(in) == 0 {
+		return optional.Empty[T]()
+	}
+	return optional.FromValue(in[rand.Intn(len(in))])
 }
