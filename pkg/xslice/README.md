@@ -119,7 +119,7 @@ xslice.Avg([]int{}) 👉 float(0)
 ```
 
 <a name="AvgBy"></a>
-## func [AvgBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L62>)
+## func [AvgBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L69>)
 
 ```go
 func AvgBy[V any, T constraints.Number](in []V, f func(V) T) float64
@@ -137,7 +137,7 @@ xslice.AvgBy([]string{"1", "2", "3"}, func(x string) int {
 ```
 
 <a name="AvgN"></a>
-## func [AvgN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L50>)
+## func [AvgN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L57>)
 
 ```go
 func AvgN[T constraints.Number](inputs ...T) float64
@@ -153,7 +153,7 @@ xslice.AvgN() 👉 float(0)
 ```
 
 <a name="Chunk"></a>
-## func [Chunk](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L458>)
+## func [Chunk](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L564>)
 
 ```go
 func Chunk[T any, Slice ~[]T](in Slice, chunkSize int) []Slice
@@ -170,7 +170,7 @@ xslice.Chunk([]int{1, 2, 3, 4, 5}, 0) 👉 []int{}
 ```
 
 <a name="ChunkInPlace"></a>
-## func [ChunkInPlace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L479>)
+## func [ChunkInPlace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L585>)
 
 ```go
 func ChunkInPlace[T any, Slice ~[]T](in Slice, chunkSize int) []Slice
@@ -185,7 +185,7 @@ xslice.Chunk([]int{1, 2, 3, 4, 5}, 0) 👉 []int{}
 ```
 
 <a name="Clone"></a>
-## func [Clone](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L278>)
+## func [Clone](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L348>)
 
 ```go
 func Clone[T any](in []T) []T
@@ -200,7 +200,7 @@ xslice.Clone([]int{1, 2, 3}) 👉 [1, 2, 3]
 ```
 
 <a name="CloneBy"></a>
-## func [CloneBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L291>)
+## func [CloneBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L358>)
 
 ```go
 func CloneBy[T any, U any](in []T, f func(T) U) []U
@@ -216,7 +216,7 @@ xslice.CloneBy([]int{1, 2, 3}, strconv.Itoa) 👉 ["1", "2", "3"]
 ```
 
 <a name="Compact"></a>
-## func [Compact](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L585>)
+## func [Compact](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L715>)
 
 ```go
 func Compact[T comparable, Slice ~[]T](in Slice) Slice
@@ -231,7 +231,7 @@ xslice.Compact([]int{0, 1, 2, 3, 4}) 👉 [1 2 3 4]
 ```
 
 <a name="Concat"></a>
-## func [Concat](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L304>)
+## func [Concat](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L371>)
 
 ```go
 func Concat[T any](vs ...[]T) []T
@@ -247,7 +247,7 @@ xslice.Concat([]int{1, 2, 3}, []int{}) 👉 [1, 2, 3]
 ```
 
 <a name="Contains"></a>
-## func [Contains](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L72>)
+## func [Contains](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L86>)
 
 ```go
 func Contains[T comparable](in []T, v T) bool
@@ -263,7 +263,7 @@ xslice.Contains([]int{-1, 2, 3}, 1) 👉 false
 ```
 
 <a name="ContainsAll"></a>
-## func [ContainsAll](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L111>)
+## func [ContainsAll](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L125>)
 
 ```go
 func ContainsAll[T comparable](in []T, v []T) bool
@@ -280,7 +280,7 @@ xslice.ContainsAll([]string{"1", "2", "3"}, []string{}) 👉 true
 ```
 
 <a name="ContainsAny"></a>
-## func [ContainsAny](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L100>)
+## func [ContainsAny](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L114>)
 
 ```go
 func ContainsAny[T comparable](in []T, v []T) bool
@@ -297,7 +297,7 @@ xslice.ContainsAny([]string{"1", "2", "3"}, []string{}) 👉 false
 ```
 
 <a name="ContainsBy"></a>
-## func [ContainsBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L89>)
+## func [ContainsBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L103>)
 
 ```go
 func ContainsBy[T any](in []T, f func(T) bool) bool
@@ -320,7 +320,7 @@ xslice.ContainsBy([]string{"1", "2", "3"}, func(x string) bool {
 ```
 
 <a name="Count"></a>
-## func [Count](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L121>)
+## func [Count](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L135>)
 
 ```go
 func Count[T any](in []T) int
@@ -336,7 +336,7 @@ xslice.Count([]int{}) 👉 0
 ```
 
 <a name="Difference"></a>
-## func [Difference](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L639>)
+## func [Difference](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L780>)
 
 ```go
 func Difference[T comparable, Slice ~[]T](left, right Slice) (onlyLeft, onlyRight Slice)
@@ -355,7 +355,7 @@ fmt.Println(onlyRight) // [6 7 8]
 ```
 
 <a name="Filter"></a>
-## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L576>)
+## func [Filter](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L700>)
 
 ```go
 func Filter[T any, Slice ~[]T](in Slice, f func(T) bool) Slice
@@ -370,7 +370,7 @@ xslice.Filter([]int{1, 2, 3, 2, 4}, func(x int) bool { return x%2 == 0 }) 👉 [
 ```
 
 <a name="Find"></a>
-## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L131>)
+## func [Find](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L145>)
 
 ```go
 func Find[T any](in []T, f func(T) bool) (val T, found bool)
@@ -386,7 +386,7 @@ xslice.Find([]int{1, 2, 3}, func(x int) bool { return x == -1 }) 👉 0, false
 ```
 
 <a name="FindO"></a>
-## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L141>)
+## func [FindO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L155>)
 
 ```go
 func FindO[T any](in []T, f func(T) bool) optional.O[T]
@@ -402,7 +402,7 @@ xslice.FindO(_range(0, 10), func(x int) bool { return x == -1 }).Ok() 👉 false
 ```
 
 <a name="First"></a>
-## func [First](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L595>)
+## func [First](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L732>)
 
 ```go
 func First[T any, Slice ~[]T](in Slice) (T, bool)
@@ -416,7 +416,7 @@ xslice.First([]int{}) 👉 0
 ```
 
 <a name="FirstO"></a>
-## func [FirstO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L605>)
+## func [FirstO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L742>)
 
 ```go
 func FirstO[T any, Slice ~[]T](in Slice) optional.O[T]
@@ -430,7 +430,7 @@ xslice.FirstO([]int{}) 👉 0
 ```
 
 <a name="Flatten"></a>
-## func [Flatten](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L708>)
+## func [Flatten](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L893>)
 
 ```go
 func Flatten[T any](in [][]T) []T
@@ -448,7 +448,7 @@ xslice.Flatten([][]int{{}, {}, {}}) 👉 []int{}
 ```
 
 <a name="ForEach"></a>
-## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L157>)
+## func [ForEach](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L171>)
 
 ```go
 func ForEach[T any](in []T, f func(T) bool)
@@ -470,7 +470,7 @@ Output:
 ```
 
 <a name="ForEachIdx"></a>
-## func [ForEachIdx](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L173>)
+## func [ForEachIdx](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L187>)
 
 ```go
 func ForEachIdx[T any](in []T, f func(idx int, v T) bool)
@@ -492,7 +492,7 @@ Output:
 ```
 
 <a name="GroupBy"></a>
-## func [GroupBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L550>)
+## func [GroupBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L672>)
 
 ```go
 func GroupBy[T any, K comparable, Slice ~[]T](in Slice, f func(T) K) map[K]Slice
@@ -507,7 +507,7 @@ xslice.GroupBy([]int{1, 2, 3, 2, 4}, func(x int) int { return x % 2 }) 👉 map[
 ```
 
 <a name="GroupByMap"></a>
-## func [GroupByMap](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L563>)
+## func [GroupByMap](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L686>)
 
 ```go
 func GroupByMap[T any, Slice ~[]T, K comparable, V any](in Slice, f func(T) (K, V)) map[K][]V
@@ -522,7 +522,7 @@ xslice.GroupByMap([]int{1, 2, 3, 2, 4}, func(x int) (int, int) { return x % 2, x
 ```
 
 <a name="Head"></a>
-## func [Head](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L193>)
+## func [Head](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L207>)
 
 ```go
 func Head[T any](in []T) (v T, hasOne bool)
@@ -538,7 +538,7 @@ optional.FromValue2(xslice.Head(_range(0, 0))).Ok() 👉 false
 ```
 
 <a name="HeadO"></a>
-## func [HeadO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L183>)
+## func [HeadO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L197>)
 
 ```go
 func HeadO[T any](in []T) optional.O[T]
@@ -554,7 +554,7 @@ xslice.HeadO(_range(0, 0)).Ok() 👉 false
 ```
 
 <a name="Index"></a>
-## func [Index](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L499>)
+## func [Index](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L605>)
 
 ```go
 func Index[T comparable, Slice ~[]T](in Slice, v T) int
@@ -569,7 +569,7 @@ xslice.Index([]int{1, 2, 3, 4, 5}, 666) 👉 -1
 ```
 
 <a name="Intersect"></a>
-## func [Intersect](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L652>)
+## func [Intersect](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L812>)
 
 ```go
 func Intersect[T comparable, Slice ~[]T](left, right Slice) Slice
@@ -587,7 +587,7 @@ fmt.Println(intersect) // [4 5]
 ```
 
 <a name="Join"></a>
-## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L203>)
+## func [Join](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L217>)
 
 ```go
 func Join[T ~string](in []T, sep T) T
@@ -603,7 +603,7 @@ xslice.Join([]string{}, ".") 👉 ""
 ```
 
 <a name="Last"></a>
-## func [Last](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L615>)
+## func [Last](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L752>)
 
 ```go
 func Last[T any, Slice ~[]T](in Slice) (T, bool)
@@ -617,7 +617,7 @@ xslice.Last([]int{}) 👉 0
 ```
 
 <a name="LastO"></a>
-## func [LastO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L625>)
+## func [LastO](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L766>)
 
 ```go
 func LastO[T any, Slice ~[]T](in Slice) optional.O[T]
@@ -631,7 +631,7 @@ xslice.LastO([]int{}) 👉 0
 ```
 
 <a name="Map"></a>
-## func [Map](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L269>)
+## func [Map](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L335>)
 
 ```go
 func Map[T any, U any](in []T, f func(T) U) []U
@@ -647,7 +647,7 @@ xslice.Map([]int{1, 2, 3}, strconv.Itoa) 👉 ["1", "2", "3"]
 ```
 
 <a name="Max"></a>
-## func [Max](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L241>)
+## func [Max](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L289>)
 
 ```go
 func Max[T constraints.Ordered](in []T) optional.O[T]
@@ -663,7 +663,7 @@ xslice.Max([]int{}) 👉 0
 ```
 
 <a name="MaxBy"></a>
-## func [MaxBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L259>)
+## func [MaxBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L316>)
 
 ```go
 func MaxBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T]
@@ -678,7 +678,7 @@ xslice.MaxBy([]int{1, 2, 3} /*less = */, func(a, b int) bool { return a > b }).M
 ```
 
 <a name="MaxN"></a>
-## func [MaxN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L250>)
+## func [MaxN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L307>)
 
 ```go
 func MaxN[T constraints.Ordered](in ...T) optional.O[T]
@@ -693,7 +693,7 @@ xslice.MaxN(1, 2, 3) 👉 3
 ```
 
 <a name="Min"></a>
-## func [Min](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L213>)
+## func [Min](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L243>)
 
 ```go
 func Min[T constraints.Ordered](in []T) optional.O[T]
@@ -709,7 +709,7 @@ xslice.Min([]int{}) 👉 0
 ```
 
 <a name="MinBy"></a>
-## func [MinBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L231>)
+## func [MinBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L270>)
 
 ```go
 func MinBy[T constraints.Ordered](in []T, f func(T, T) bool) optional.O[T]
@@ -724,7 +724,7 @@ xslice.MinBy([]int{3, 2, 1} /*less = */, func(a, b int) bool { return a > b }).M
 ```
 
 <a name="MinN"></a>
-## func [MinN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L222>)
+## func [MinN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L261>)
 
 ```go
 func MinN[T constraints.Ordered](in ...T) optional.O[T]
@@ -739,7 +739,7 @@ xslice.MinN(1, 2, 3) 👉 1
 ```
 
 <a name="RandomElement"></a>
-## func [RandomElement](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L749>)
+## func [RandomElement](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L948>)
 
 ```go
 func RandomElement[T any, Slice ~[]T](in Slice) optional.O[T]
@@ -756,7 +756,7 @@ xslice.RandomElement([]int{}).Ok() 👉 false
 ```
 
 <a name="Remove"></a>
-## func [Remove](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L687>)
+## func [Remove](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L868>)
 
 ```go
 func Remove[T comparable, Slice ~[]T](in Slice, wantToRemove ...T) Slice
@@ -773,7 +773,7 @@ fmt.Println(arr1) // [2, 3, 4]
 ```
 
 <a name="Repeat"></a>
-## func [Repeat](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L409>)
+## func [Repeat](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L503>)
 
 ```go
 func Repeat[T any, Slice ~[]T](in Slice, count int) Slice
@@ -789,7 +789,7 @@ xslice.Repeat([]int{1, 2, 3}, 0) 👉 []int{}
 ```
 
 <a name="RepeatBy"></a>
-## func [RepeatBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L419>)
+## func [RepeatBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L520>)
 
 ```go
 func RepeatBy[T any](n int, f func(i int) T) []T
@@ -805,7 +805,7 @@ xslice.RepeatBy(3, func(i int) string { return strconv.Itoa(i) }) 👉 []string{
 ```
 
 <a name="Replace"></a>
-## func [Replace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L364>)
+## func [Replace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L442>)
 
 ```go
 func Replace[T comparable, Slice ~[]T](in Slice, from, to T, count int) []T
@@ -821,7 +821,7 @@ xslice.Replace([]int{1, 2, 2}, 2, 4, -1) 👉 [1, 4, 4]
 ```
 
 <a name="ReplaceAll"></a>
-## func [ReplaceAll](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L374>)
+## func [ReplaceAll](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L466>)
 
 ```go
 func ReplaceAll[T comparable, Slice ~[]T](in Slice, from, to T) []T
@@ -837,7 +837,7 @@ xslice.ReplaceAll([]int{1, 2, 2}, 2, 4) 👉 [1, 4, 4]
 ```
 
 <a name="Reverse"></a>
-## func [Reverse](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L397>)
+## func [Reverse](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L491>)
 
 ```go
 func Reverse[T any, Slice ~[]T](in Slice)
@@ -853,7 +853,7 @@ xslice.Reverse([]int{}) 👉 []int{}
 ```
 
 <a name="ReverseClone"></a>
-## func [ReverseClone](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L385>)
+## func [ReverseClone](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L477>)
 
 ```go
 func ReverseClone[T any, Slice ~[]T](in Slice) Slice
@@ -870,7 +870,7 @@ xslice.ReverseClone([]int{3, 2, 1}) 👉 [1, 2, 3]
 ```
 
 <a name="Sample"></a>
-## func [Sample](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L737>)
+## func [Sample](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L924>)
 
 ```go
 func Sample[T any, Slice ~[]T](in Slice, n int) Slice
@@ -888,7 +888,7 @@ xslice.Sample([]int{}, 3) 👉 []int{}
 ```
 
 <a name="Shuffle"></a>
-## func [Shuffle](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L433>)
+## func [Shuffle](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L534>)
 
 ```go
 func Shuffle[T any, Slice ~[]T](in Slice) Slice
@@ -904,7 +904,7 @@ xslice.Shuffle([]int{}) 👉 []int{}
 ```
 
 <a name="ShuffleInPlace"></a>
-## func [ShuffleInPlace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L443>)
+## func [ShuffleInPlace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L549>)
 
 ```go
 func ShuffleInPlace[T any, Slice ~[]T](in Slice)
@@ -920,7 +920,7 @@ xslice.ShuffleInPlace(array) 👉 [2, 1, 3] (random)
 ```
 
 <a name="Subset"></a>
-## func [Subset](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L319>)
+## func [Subset](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L390>)
 
 ```go
 func Subset[T any, Slice ~[]T](in Slice, start, count int) Slice
@@ -936,7 +936,7 @@ xslice.Subset([]int{1, 2, 3}, -1, 2) 👉 [2, 3]
 ```
 
 <a name="SubsetInPlace"></a>
-## func [SubsetInPlace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L339>)
+## func [SubsetInPlace](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L417>)
 
 ```go
 func SubsetInPlace[T any, Slice ~[]T](in Slice, start int, count int) Slice
@@ -950,7 +950,7 @@ xslice.SubsetInPlace([]int{1, 2, 3}, -1, 2) 👉 [2, 3]
 ```
 
 <a name="Sum"></a>
-## func [Sum](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L509>)
+## func [Sum](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L615>)
 
 ```go
 func Sum[T constraints.Number, Slice ~[]T](in Slice) T
@@ -966,7 +966,7 @@ xslice.Sum([]int{}) 👉 0
 ```
 
 <a name="SumBy"></a>
-## func [SumBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L532>)
+## func [SumBy](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L642>)
 
 ```go
 func SumBy[T any, R constraints.Number, Slice ~[]T](in Slice, f func(T) R) R
@@ -985,7 +985,7 @@ xslice.SumBy([]string{}, func(x string) int { return 0 }) 👉 0
 ```
 
 <a name="SumN"></a>
-## func [SumN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L519>)
+## func [SumN](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L629>)
 
 ```go
 func SumN[T constraints.Number](in ...T) T
@@ -1001,7 +1001,7 @@ xslice.SumN() 👉 0
 ```
 
 <a name="ToMap"></a>
-## func [ToMap](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L721>)
+## func [ToMap](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L906>)
 
 ```go
 func ToMap[T comparable, U any](in []T, f func(T) U) map[T]U
@@ -1019,7 +1019,7 @@ xslice.ToMap([]int{}, func(i int) string { return "" }) 👉 map[int]string{}
 ```
 
 <a name="Union"></a>
-## func [Union](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L670>)
+## func [Union](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L840>)
 
 ```go
 func Union[T comparable, Slice ~[]T](left, right Slice) Slice
@@ -1037,7 +1037,7 @@ fmt.Println(union) // [1 2 3 4 5 6]
 ```
 
 <a name="Uniq"></a>
-## func [Uniq](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L541>)
+## func [Uniq](<https://github.com/dashjay/xiter/blob/main/pkg/xslice/xslice.go#L655>)
 
 ```go
 func Uniq[T comparable, Slice ~[]T](in Slice) Slice
