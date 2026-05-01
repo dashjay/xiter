@@ -238,3 +238,124 @@ func Moderate[T comparable](in Seq[T]) (T, bool) {
 func ModerateO[T constraints.Number](in Seq[T]) optional.O[T] {
 	return optional.FromValue2(Moderate(in))
 }
+
+// Cycle returns a Seq that infinitely repeats the elements of seq.
+// The input seq is materialized once, then cycled in memory.
+//
+// EXAMPLE:
+//
+//	seq := xiter.Cycle(xiter.FromSlice([]int{1, 2, 3}))
+//	// seq will yield: 1, 2, 3, 1, 2, 3, 1, 2, 3, ...
+func Cycle[T any](seq Seq[T]) Seq[T] {
+	var elems []T
+	seq(func(v T) bool {
+		elems = append(elems, v)
+		return true
+	})
+	if len(elems) == 0 {
+		return func(yield func(T) bool) {}
+	}
+	return func(yield func(T) bool) {
+		for {
+			for _, v := range elems {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// Generate returns an infinite Seq where each element is produced by calling fn.
+// The sequence is unbounded; use with Limit, TakeWhile, etc. to constrain.
+//
+// EXAMPLE:
+//
+//	seq := xiter.Generate(func() int { return rand.Intn(100) })
+//	first5 := xiter.ToSlice(xiter.Limit(seq, 5))
+//	// first5 contains 5 random numbers
+func Generate[T any](fn func() T) Seq[T] {
+	return func(yield func(T) bool) {
+		for {
+			if !yield(fn()) {
+				break
+			}
+		}
+	}
+}
+
+// ToChan sends all elements of seq to a returned channel and closes it when the seq is exhausted.
+//
+// EXAMPLE:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3})
+//	ch := xiter.ToChan(seq)
+//	for v := range ch {
+//		fmt.Println(v)
+//	}
+func ToChan[T any](seq Seq[T]) <-chan T {
+	ch := make(chan T)
+	go func() {
+		seq(func(v T) bool {
+			ch <- v
+			return true
+		})
+		close(ch)
+	}()
+	return ch
+}
+
+// Range returns a Seq of integers from start to end, stepping by step.
+// If step > 0, elements are yielded while i < end.
+// If step < 0, elements are yielded while i > end.
+// If step == 0, an empty sequence is returned.
+//
+// EXAMPLE:
+//
+//	seq := xiter.Range(0, 10, 2)
+//	// seq will yield: 0, 2, 4, 6, 8
+//
+//	seq = xiter.Range(10, 0, -3)
+//	// seq will yield: 10, 7, 4, 1
+func Range[T constraints.Integer](start, end, step T) Seq[T] {
+	return func(yield func(T) bool) {
+		if step > 0 {
+			for i := start; i < end; i += step {
+				if !yield(i) {
+					return
+				}
+			}
+		} else if step < 0 {
+			for i := start; i > end; i += step {
+				if !yield(i) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// WithIndex returns a Seq2 that pairs each element from seq with its 0-based index.
+//
+// EXAMPLE:
+//
+//	seq := xiter.FromSlice([]string{"a", "b", "c"})
+//	for idx, v := range xiter.WithIndex(seq) {
+//		fmt.Println(idx, v)
+//	}
+//	// output:
+//	// 0 a
+//	// 1 b
+//	// 2 c
+func WithIndex[T any](seq Seq[T]) Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		i := 0
+		seq(func(v T) bool {
+			if !yield(i, v) {
+				return false
+			}
+			i++
+			return true
+		})
+	}
+}
