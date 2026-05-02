@@ -1648,4 +1648,377 @@ type Zipped2[K1, V1, K2, V2 any] struct {
 }
 ```
 
+# collect
+
+```go
+import "github.com/dashjay/xiter/xiter/collect"
+```
+
+Package collect provides lazy collection and windowing operations for iter.Seq.
+
+Functions in this package materialize or buffer elements as needed, then yield results as a sequence for downstream processing.
+
+## Index
+
+- [func GroupBy\[T any, K comparable\]\(seq xiter.Seq\[T\], keyFn func\(T\) K\) xiter.Seq\[Group\[K, T\]\]](<#GroupBy>)
+- [func SortedGroupBy\[T any, K comparable\]\(seq xiter.Seq\[T\], keyFn func\(T\) K\) xiter.Seq\[Group\[K, T\]\]](<#SortedGroupBy>)
+- [func Window\[T any\]\(seq xiter.Seq\[T\], n int\) xiter.Seq\[\[\]T\]](<#Window>)
+- [type Group](<#Group>)
+
+
+<a name="GroupBy"></a>
+## func [GroupBy](<https://github.com/dashjay/xiter/blob/main/xiter/collect/collect.go#L31>)
+
+```go
+func GroupBy[T any, K comparable](seq xiter.Seq[T], keyFn func(T) K) xiter.Seq[Group[K, T]]
+```
+
+GroupBy groups elements from seq by the key returned by keyFn. The entire sequence is materialized to build groups, then the groups are yielded as a Seq\[Group\[K, V\]\].
+
+Example:
+
+```
+words := xiter.FromSlice([]string{"apple", "banana", "avocado", "blueberry"})
+groups := collect.GroupBy(words, func(s string) string {
+	return string(s[0]) // group by first letter
+})
+for g := range groups {
+	fmt.Printf("%s: %v\n", g.Key, g.Items)
+}
+```
+
+<a name="SortedGroupBy"></a>
+## func [SortedGroupBy](<https://github.com/dashjay/xiter/blob/main/xiter/collect/collect.go#L64>)
+
+```go
+func SortedGroupBy[T any, K comparable](seq xiter.Seq[T], keyFn func(T) K) xiter.Seq[Group[K, T]]
+```
+
+SortedGroupBy returns groups from a pre\-sorted sequence. The input seq must already be sorted by the key returned by keyFn. Unlike GroupBy, this function uses O\(1\) memory per group and yields each group as soon as the key changes.
+
+If the input is not sorted by key, groups will be split incorrectly \(the same key may appear in multiple groups\).
+
+Example:
+
+```
+words := xiter.FromSlice([]string{"apple", "avocado", "banana", "blueberry"})
+groups := collect.SortedGroupBy(words, func(s string) string {
+	return string(s[0]) // input must be sorted by first letter
+})
+```
+
+<a name="Window"></a>
+## func [Window](<https://github.com/dashjay/xiter/blob/main/xiter/collect/collect.go#L95>)
+
+```go
+func Window[T any](seq xiter.Seq[T], n int) xiter.Seq[[]T]
+```
+
+Window yields sliding windows of n elements from seq. Each window is a newly allocated slice, overlapping by n\-1 elements. If seq has fewer than n elements, no windows are yielded.
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 4, 5, 6})
+for w := range collect.Window(seq, 3) {
+	fmt.Println(w) // [1 2 3] [2 3 4] [3 4 5] [4 5 6]
+}
+```
+
+<a name="Group"></a>
+## type [Group](<https://github.com/dashjay/xiter/blob/main/xiter/collect/collect.go#L13-L16>)
+
+Group represents a group of values sharing the same key, produced by GroupBy or SortedGroupBy.
+
+```go
+type Group[K comparable, V any] struct {
+    Key   K
+    Items []V
+}
+```
+
+# combin
+
+```go
+import "github.com/dashjay/xiter/xiter/combin"
+```
+
+Package combin provides combinatorial generators for iter.Seq.
+
+These functions generate combinations, permutations, and cartesian products as lazy sequences. Input sequences are materialized internally since combinatorial operations require random access to elements.
+
+## Index
+
+- [func Combinations\[T any\]\(seq xiter.Seq\[T\], k int\) xiter.Seq\[\[\]T\]](<#Combinations>)
+- [func Permutations\[T any\]\(seq xiter.Seq\[T\], k int\) xiter.Seq\[\[\]T\]](<#Permutations>)
+- [func Product\[T any\]\(seqs ...xiter.Seq\[T\]\) xiter.Seq\[\[\]T\]](<#Product>)
+
+
+<a name="Combinations"></a>
+## func [Combinations](<https://github.com/dashjay/xiter/blob/main/xiter/combin/combin.go#L22>)
+
+```go
+func Combinations[T any](seq xiter.Seq[T], k int) xiter.Seq[[]T]
+```
+
+Combinations yields all k\-length combinations of elements from seq. Results are yielded in lexicographic order of indices. If seq has fewer than k elements, an empty sequence is returned.
+
+Example:
+
+```
+seq := xiter.FromSlice([]string{"a", "b", "c"})
+for comb := range combin.Combinations(seq, 2) {
+	fmt.Println(comb) // [a b] [a c] [b c]
+}
+```
+
+<a name="Permutations"></a>
+## func [Permutations](<https://github.com/dashjay/xiter/blob/main/xiter/combin/combin.go#L74>)
+
+```go
+func Permutations[T any](seq xiter.Seq[T], k int) xiter.Seq[[]T]
+```
+
+Permutations yields all k\-length permutations of elements from seq. Results are yielded in lexicographic order of indices. If seq has fewer than k elements, an empty sequence is returned.
+
+Example:
+
+```
+seq := xiter.FromSlice([]string{"a", "b", "c"})
+for perm := range combin.Permutations(seq, 2) {
+	fmt.Println(perm) // [a b] [a c] [b a] [b c] [c a] [c b]
+}
+```
+
+<a name="Product"></a>
+## func [Product](<https://github.com/dashjay/xiter/blob/main/xiter/combin/combin.go#L120>)
+
+```go
+func Product[T any](seqs ...xiter.Seq[T]) xiter.Seq[[]T]
+```
+
+Product yields the cartesian product of the input sequences. All input sequences are materialized internally. If any input sequence is empty, an empty sequence is yielded.
+
+Example:
+
+```
+colors := xiter.FromSlice([]string{"red", "blue"})
+sizes := xiter.FromSlice([]string{"S", "M", "L"})
+for p := range combin.Product(colors, sizes) {
+	fmt.Println(p) // [red S] [red M] [red L] [blue S] [blue M] [blue L]
+}
+```
+
+# io
+
+```go
+import "github.com/dashjay/xiter/xiter/io"
+```
+
+Package io provides lazy I/O operations that produce iter.Seq sequences.
+
+Unlike standard I/O functions that read entire files into memory, these functions yield elements on demand, enabling processing of large or streaming data with bounded memory.
+
+## Index
+
+- [func Lines\(r io.Reader\) xiter.Seq\[string\]](<#Lines>)
+- [func ReadDir\(dir string\) xiter.Seq\[fs.DirEntry\]](<#ReadDir>)
+- [func ReadFileByChunk\(filename string, size int\) xiter.Seq\[\[\]byte\]](<#ReadFileByChunk>)
+
+
+<a name="Lines"></a>
+## func [Lines](<https://github.com/dashjay/xiter/blob/main/xiter/io/io.go#L30>)
+
+```go
+func Lines(r io.Reader) xiter.Seq[string]
+```
+
+Lines reads from r line by line, yielding each line as a string. The iteration stops when the reader is exhausted or the consumer stops iterating.
+
+Example:
+
+```
+f, _ := os.Open("file.txt")
+defer f.Close()
+for line := range iox.Lines(f) {
+	fmt.Println(line)
+}
+```
+
+<a name="ReadDir"></a>
+## func [ReadDir](<https://github.com/dashjay/xiter/blob/main/xiter/io/io.go#L49>)
+
+```go
+func ReadDir(dir string) xiter.Seq[fs.DirEntry]
+```
+
+ReadDir returns a Seq of directory entries for the specified directory. If the directory cannot be read, an empty sequence is returned.
+
+Example:
+
+```
+for entry := range iox.ReadDir(".") {
+	fmt.Println(entry.Name())
+}
+```
+
+<a name="ReadFileByChunk"></a>
+## func [ReadFileByChunk](<https://github.com/dashjay/xiter/blob/main/xiter/io/io.go#L73>)
+
+```go
+func ReadFileByChunk(filename string, size int) xiter.Seq[[]byte]
+```
+
+ReadFileByChunk reads the file at filename in chunks of the specified size. Each chunk is a newly allocated slice of bytes. If the file cannot be opened, an empty sequence is returned.
+
+Example:
+
+```
+for chunk := range iox.ReadFileByChunk("large.bin", 4096) {
+	process(chunk)
+}
+```
+
+# rt
+
+```go
+import "github.com/dashjay/xiter/xiter/rt"
+```
+
+Package rt provides real\-time event stream utilities built on iter.Seq.
+
+These functions enable time\-based operations on sequences, such as periodic ticks, rate\-limiting, and debouncing.
+
+## Index
+
+- [func Debounce\[T any\]\(seq xiter.Seq\[T\], d time.Duration\) xiter.Seq\[T\]](<#Debounce>)
+- [func Throttle\[T any\]\(seq xiter.Seq\[T\], d time.Duration\) xiter.Seq\[T\]](<#Throttle>)
+- [func Ticker\(d time.Duration\) xiter.Seq\[time.Time\]](<#Ticker>)
+
+
+<a name="Debounce"></a>
+## func [Debounce](<https://github.com/dashjay/xiter/blob/main/xiter/rt/rt.go#L67>)
+
+```go
+func Debounce[T any](seq xiter.Seq[T], d time.Duration) xiter.Seq[T]
+```
+
+Debounce yields values from seq only after a quiet period of duration d has elapsed since the last value was received. If new values arrive before the quiet period elapses, the timer resets. The final value is always flushed when the input sequence is exhausted.
+
+Example:
+
+```
+for v := range rt.Debounce(eventStream, 100*time.Millisecond) {
+	fmt.Println("debounced:", v)
+}
+```
+
+<a name="Throttle"></a>
+## func [Throttle](<https://github.com/dashjay/xiter/blob/main/xiter/rt/rt.go#L44>)
+
+```go
+func Throttle[T any](seq xiter.Seq[T], d time.Duration) xiter.Seq[T]
+```
+
+Throttle limits the rate of values from seq, yielding at most one value per duration d.
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+for v := range rt.Throttle(seq, 100*time.Millisecond) {
+	fmt.Println(v) // printed at most every 100ms
+}
+```
+
+<a name="Ticker"></a>
+## func [Ticker](<https://github.com/dashjay/xiter/blob/main/xiter/rt/rt.go#L23>)
+
+```go
+func Ticker(d time.Duration) xiter.Seq[time.Time]
+```
+
+Ticker returns a sequence that yields the current time at the specified interval. The sequence is unbounded; use with Limit, TakeWhile, etc. to constrain.
+
+Example:
+
+```
+for t := range rt.Ticker(time.Second) {
+	fmt.Println("tick at", t)
+}
+```
+
+# stream
+
+```go
+import "github.com/dashjay/xiter/xiter/stream"
+```
+
+Package stream provides concurrent stream processing utilities for iter.Seq.
+
+These functions enable parallel and batched processing of sequences, useful for CPU\-bound or I/O\-bound workloads where goroutines can improve throughput.
+
+## Index
+
+- [func Batch\[T any\]\(seq xiter.Seq\[T\], n int\) xiter.Seq\[\[\]T\]](<#Batch>)
+- [func FanIn\[T any\]\(seqs ...xiter.Seq\[T\]\) xiter.Seq\[T\]](<#FanIn>)
+- [func ParallelMap\[T, R any\]\(seq xiter.Seq\[T\], fn func\(T\) R, n int\) xiter.Seq\[R\]](<#ParallelMap>)
+
+
+<a name="Batch"></a>
+## func [Batch](<https://github.com/dashjay/xiter/blob/main/xiter/stream/stream.go#L143>)
+
+```go
+func Batch[T any](seq xiter.Seq[T], n int) xiter.Seq[[]T]
+```
+
+Batch groups elements from seq into slices of at most n elements. The last batch may contain fewer than n elements.
+
+Example:
+
+```
+seq := xiter.FromSlice([]int{1, 2, 3, 4, 5})
+for batch := range stream.Batch(seq, 2) {
+	fmt.Println(batch) // [1 2] [3 4] [5]
+}
+```
+
+<a name="FanIn"></a>
+## func [FanIn](<https://github.com/dashjay/xiter/blob/main/xiter/stream/stream.go#L94>)
+
+```go
+func FanIn[T any](seqs ...xiter.Seq[T]) xiter.Seq[T]
+```
+
+FanIn merges multiple sequences into a single sequence. Values from all input sequences are interleaved as they arrive. The returned sequence ends when all input sequences are exhausted.
+
+Example:
+
+```
+seq1 := xiter.FromSlice([]int{1, 2, 3})
+seq2 := xiter.FromSlice([]int{4, 5, 6})
+for v := range stream.FanIn(seq1, seq2) {
+	fmt.Println(v) // may print 1,4,2,5,3,6 in any interleaving
+}
+```
+
+<a name="ParallelMap"></a>
+## func [ParallelMap](<https://github.com/dashjay/xiter/blob/main/xiter/stream/stream.go#L27>)
+
+```go
+func ParallelMap[T, R any](seq xiter.Seq[T], fn func(T) R, n int) xiter.Seq[R]
+```
+
+ParallelMap applies fn to each element in seq concurrently using n worker goroutines. Results are yielded in non\-deterministic order as workers complete.
+
+Example:
+
+```
+results := stream.ParallelMap(
+	xiter.FromSlice([]int{1, 2, 3, 4, 5}),
+	func(v int) int { return v * 2 },
+	3,
+)
+```
+
 Generated by [gomarkdoc](<https://github.com/princjef/gomarkdoc>)
