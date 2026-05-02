@@ -269,4 +269,162 @@ func (l *List[V]) Remove(e *Element[V]) V
 
 Remove removes e from l if e is an element of list l. It returns the element value e.Value. The element must not be nil.
 
+# lockedmap
+
+```go
+import "github.com/dashjay/xiter/xstl/lockedmap"
+```
+
+Package lockedmap provides a concurrency\-safe generic map backed by sync.RWMutex and a regular Go map.
+
+Unlike xsync.SyncMap \(which wraps sync.Map\), LockedMap ensures that all methods including Len, ToMap, and Range provide consistent snapshots under concurrent access.
+
+## Index
+
+- [type LockedMap](<#LockedMap>)
+  - [func NewLockedMap\[K comparable, V any\]\(\) \*LockedMap\[K, V\]](<#NewLockedMap>)
+  - [func \(m \*LockedMap\[K, V\]\) Clear\(\)](<#LockedMap[K, V].Clear>)
+  - [func \(m \*LockedMap\[K, V\]\) CompareAndDelete\(key K, old V\) bool](<#LockedMap[K, V].CompareAndDelete>)
+  - [func \(m \*LockedMap\[K, V\]\) CompareAndSwap\(key K, old, new V\) bool](<#LockedMap[K, V].CompareAndSwap>)
+  - [func \(m \*LockedMap\[K, V\]\) Delete\(key K\)](<#LockedMap[K, V].Delete>)
+  - [func \(m \*LockedMap\[K, V\]\) Len\(\) int](<#LockedMap[K, V].Len>)
+  - [func \(m \*LockedMap\[K, V\]\) Load\(key K\) \(value V, ok bool\)](<#LockedMap[K, V].Load>)
+  - [func \(m \*LockedMap\[K, V\]\) LoadAndDelete\(key K\) \(value V, loaded bool\)](<#LockedMap[K, V].LoadAndDelete>)
+  - [func \(m \*LockedMap\[K, V\]\) LoadOrStore\(key K, value V\) \(actual V, loaded bool\)](<#LockedMap[K, V].LoadOrStore>)
+  - [func \(m \*LockedMap\[K, V\]\) Range\(f func\(key K, value V\) bool\)](<#LockedMap[K, V].Range>)
+  - [func \(m \*LockedMap\[K, V\]\) Store\(key K, value V\)](<#LockedMap[K, V].Store>)
+  - [func \(m \*LockedMap\[K, V\]\) Swap\(key K, value V\) \(previous V, loaded bool\)](<#LockedMap[K, V].Swap>)
+  - [func \(m \*LockedMap\[K, V\]\) ToMap\(\) map\[K\]V](<#LockedMap[K, V].ToMap>)
+
+
+<a name="LockedMap"></a>
+## type [LockedMap](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L38-L41>)
+
+LockedMap is a concurrency\-safe generic map backed by sync.RWMutex. The zero value is not ready to use; use NewLockedMap to create one.
+
+```go
+type LockedMap[K comparable, V any] struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="NewLockedMap"></a>
+### func [NewLockedMap](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L44>)
+
+```go
+func NewLockedMap[K comparable, V any]() *LockedMap[K, V]
+```
+
+NewLockedMap creates a new empty LockedMap.
+
+<a name="LockedMap[K, V].Clear"></a>
+### func \(\*LockedMap\[K, V\]\) [Clear](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L161>)
+
+```go
+func (m *LockedMap[K, V]) Clear()
+```
+
+Clear deletes all entries, resulting in an empty map.
+
+<a name="LockedMap[K, V].CompareAndDelete"></a>
+### func \(\*LockedMap\[K, V\]\) [CompareAndDelete](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L150>)
+
+```go
+func (m *LockedMap[K, V]) CompareAndDelete(key K, old V) bool
+```
+
+CompareAndDelete deletes the entry for a key if the stored value equals old. Comparison uses reflect.DeepEqual.
+
+<a name="LockedMap[K, V].CompareAndSwap"></a>
+### func \(\*LockedMap\[K, V\]\) [CompareAndSwap](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L138>)
+
+```go
+func (m *LockedMap[K, V]) CompareAndSwap(key K, old, new V) bool
+```
+
+CompareAndSwap swaps the value for a key if the stored value equals old. Comparison uses reflect.DeepEqual.
+
+<a name="LockedMap[K, V].Delete"></a>
+### func \(\*LockedMap\[K, V\]\) [Delete](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L87>)
+
+```go
+func (m *LockedMap[K, V]) Delete(key K)
+```
+
+Delete deletes the value for a key.
+
+<a name="LockedMap[K, V].Len"></a>
+### func \(\*LockedMap\[K, V\]\) [Len](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L109>)
+
+```go
+func (m *LockedMap[K, V]) Len() int
+```
+
+Len returns the number of elements in the map. O\(1\) complexity.
+
+<a name="LockedMap[K, V].Load"></a>
+### func \(\*LockedMap\[K, V\]\) [Load](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L49>)
+
+```go
+func (m *LockedMap[K, V]) Load(key K) (value V, ok bool)
+```
+
+Load returns the value stored for the key, or false if no value exists.
+
+<a name="LockedMap[K, V].LoadAndDelete"></a>
+### func \(\*LockedMap\[K, V\]\) [LoadAndDelete](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L76>)
+
+```go
+func (m *LockedMap[K, V]) LoadAndDelete(key K) (value V, loaded bool)
+```
+
+LoadAndDelete deletes the value for a key, returning the previous value if any.
+
+<a name="LockedMap[K, V].LoadOrStore"></a>
+### func \(\*LockedMap\[K, V\]\) [LoadOrStore](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L65>)
+
+```go
+func (m *LockedMap[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool)
+```
+
+LoadOrStore returns the existing value for the key if present. Otherwise, it stores and returns the given value.
+
+<a name="LockedMap[K, V].Range"></a>
+### func \(\*LockedMap\[K, V\]\) [Range](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L98>)
+
+```go
+func (m *LockedMap[K, V]) Range(f func(key K, value V) bool)
+```
+
+Range calls f sequentially for each key and value present in the map. If f returns false, range stops the iteration.
+
+NOTE: Do not call Store, Delete, or other mutating methods on m from within f, or a deadlock will occur.
+
+<a name="LockedMap[K, V].Store"></a>
+### func \(\*LockedMap\[K, V\]\) [Store](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L57>)
+
+```go
+func (m *LockedMap[K, V]) Store(key K, value V)
+```
+
+Store sets the value for a key.
+
+<a name="LockedMap[K, V].Swap"></a>
+### func \(\*LockedMap\[K, V\]\) [Swap](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L128>)
+
+```go
+func (m *LockedMap[K, V]) Swap(key K, value V) (previous V, loaded bool)
+```
+
+Swap swaps the value for a key and returns the previous value if any.
+
+<a name="LockedMap[K, V].ToMap"></a>
+### func \(\*LockedMap\[K, V\]\) [ToMap](<https://github.com/dashjay/xiter/blob/main/xstl/lockedmap/locked_map.go#L117>)
+
+```go
+func (m *LockedMap[K, V]) ToMap() map[K]V
+```
+
+ToMap returns a copy of the map as a regular map. The returned map is a consistent snapshot at the time of the call.
+
 Generated by [gomarkdoc](<https://github.com/princjef/gomarkdoc>)

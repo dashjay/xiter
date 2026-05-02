@@ -6,6 +6,7 @@ package xiter
 import (
 	"math/rand"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -980,5 +981,105 @@ func Compact[T comparable](in Seq[T]) Seq[T] {
 			}
 			return yield(t)
 		})
+	}
+}
+
+func FlatMap[In, Out any](f func(In) Seq[Out], seq Seq[In]) Seq[Out] {
+	return func(yield func(Out) bool) {
+		seq(func(in In) bool {
+			cont := true
+			f(in)(func(out Out) bool {
+				if !yield(out) {
+					cont = false
+					return false
+				}
+				return true
+			})
+			return cont
+		})
+	}
+}
+
+func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
+	return FlatMap(func(inner Seq[T]) Seq[T] { return inner }, seq)
+}
+
+func TakeWhile[V any](f func(V) bool, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		seq(func(v V) bool {
+			if !f(v) {
+				return false
+			}
+			return yield(v)
+		})
+	}
+}
+
+func DropWhile[V any](f func(V) bool, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		dropping := true
+		seq(func(v V) bool {
+			if dropping && f(v) {
+				return true
+			}
+			dropping = false
+			return yield(v)
+		})
+	}
+}
+
+func DistinctBy[V any, K comparable](f func(V) K, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		seen := make(map[K]struct{})
+		seq(func(v V) bool {
+			k := f(v)
+			if _, ok := seen[k]; !ok {
+				seen[k] = struct{}{}
+				return yield(v)
+			}
+			return true
+		})
+	}
+}
+
+func Intersperse[V any](sep V, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		first := true
+		seq(func(v V) bool {
+			if !first && !yield(sep) {
+				return false
+			}
+			first = false
+			return yield(v)
+		})
+	}
+}
+
+func Split[V any](f func(V) bool, seq Seq[V]) (tru, fls Seq[V]) {
+	var trueVals, falseVals []V
+	seq(func(v V) bool {
+		if f(v) {
+			trueVals = append(trueVals, v)
+		} else {
+			falseVals = append(falseVals, v)
+		}
+		return true
+	})
+	return FromSlice(trueVals), FromSlice(falseVals)
+}
+
+func Sorted[V constraints.Ordered](seq Seq[V]) Seq[V] {
+	return SortBy(seq, func(v V) V { return v })
+}
+
+func SortBy[V any, K constraints.Ordered](seq Seq[V], f func(V) K) Seq[V] {
+	return func(yield func(V) bool) {
+		all := ToSlice(seq)
+		sort.Slice(all, func(i, j int) bool { return f(all[i]) < f(all[j]) })
+		for _, v := range all {
+			if !yield(v) {
+				return
+			}
+		}
 	}
 }

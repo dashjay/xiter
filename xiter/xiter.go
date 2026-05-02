@@ -7,6 +7,7 @@ import (
 	"iter"
 	"maps"
 	"math/rand"
+	"sort"
 	"strings"
 
 	"github.com/dashjay/xiter/internal/constraints"
@@ -1112,6 +1113,204 @@ func Compact[T comparable](in Seq[T]) Seq[T] {
 			}
 			if !yield(t) {
 				break
+			}
+		}
+	}
+}
+
+// FlatMap maps each element in seq to a sequence using f, then flattens
+// all resulting sequences into a single sequence.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3})
+//	flatMapped := xiter.FlatMap(func(v int) xiter.Seq[int] {
+//		return xiter.FromSlice([]int{v, v * 10})
+//	}, seq)
+//	fmt.Println(xiter.ToSlice(flatMapped))
+//	// output:
+//	// [1 10 2 20 3 30]
+func FlatMap[In, Out any](f func(In) Seq[Out], seq Seq[In]) Seq[Out] {
+	return func(yield func(Out) bool) {
+		for in := range seq {
+			for out := range f(in) {
+				if !yield(out) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// Flatten flattens a sequence of sequences into a single sequence.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]xiter.Seq[int]{
+//		xiter.FromSlice([]int{1, 2}),
+//		xiter.FromSlice([]int{3, 4, 5}),
+//	})
+//	flat := xiter.Flatten(seq)
+//	fmt.Println(xiter.ToSlice(flat))
+//	// output:
+//	// [1 2 3 4 5]
+func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
+	return FlatMap(func(inner Seq[T]) Seq[T] { return inner }, seq)
+}
+
+// TakeWhile yields elements from seq as long as f(v) returns true, then stops.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 3, 5, 7, 2})
+//	taken := xiter.TakeWhile(func(v int) bool { return v%2 == 1 }, seq)
+//	fmt.Println(xiter.ToSlice(taken))
+//	// output:
+//	// [1 3 5 7]
+func TakeWhile[V any](f func(V) bool, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		for v := range seq {
+			if !f(v) || !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// DropWhile skips elements from seq while f(v) returns true,
+// then yields the remaining elements.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 3, 5, 7, 2, 4})
+//	dropped := xiter.DropWhile(func(v int) bool { return v%2 == 1 }, seq)
+//	fmt.Println(xiter.ToSlice(dropped))
+//	// output:
+//	// [2 4]
+func DropWhile[V any](f func(V) bool, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		dropping := true
+		for v := range seq {
+			if dropping {
+				dropping = f(v)
+				if dropping {
+					continue
+				}
+			}
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// DistinctBy returns a Seq that removes duplicate elements based on a key function.
+// Unlike Uniq, which requires directly comparable elements, DistinctBy lets you
+// define how to derive a comparable key from each element.
+//
+// Example:
+//
+//	type Person struct{ Name string; Age int }
+//	people := xiter.FromSlice([]Person{{"alice", 30}, {"bob", 30}, {"alice", 25}})
+//	uniq := xiter.DistinctBy(people, func(p Person) string { return p.Name })
+//	fmt.Println(xiter.ToSlice(uniq))
+//	// output:
+//	// [{alice 30} {bob 30}]
+func DistinctBy[V any, K comparable](f func(V) K, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		seen := make(map[K]struct{})
+		for v := range seq {
+			k := f(v)
+			if _, ok := seen[k]; !ok {
+				seen[k] = struct{}{}
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// Intersperse places sep between consecutive elements of seq.
+//
+// Example:
+//
+//	seq := xiter.FromSlice([]int{1, 2, 3})
+//	withSep := xiter.Intersperse(0, seq)
+//	fmt.Println(xiter.ToSlice(withSep))
+//	// output:
+//	// [1 0 2 0 3]
+func Intersperse[V any](sep V, seq Seq[V]) Seq[V] {
+	return func(yield func(V) bool) {
+		first := true
+		for v := range seq {
+			if !first && !yield(sep) {
+				return
+			}
+			first = false
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// Split splits seq into two sequences based on predicate f.
+// The first sequence contains elements where f(v) is true,
+// the second contains elements where f(v) is false.
+// Both sequences are materialized eagerly.
+//
+// Example:
+//
+//	tru, fls := xiter.Split(func(v int) bool { return v%2 == 0 }, xiter.FromSlice([]int{1, 2, 3, 4, 5}))
+//	fmt.Println(xiter.ToSlice(tru))
+//	fmt.Println(xiter.ToSlice(fls))
+//	// output:
+//	// [2 4]
+//	// [1 3 5]
+func Split[V any](f func(V) bool, seq Seq[V]) (tru, fls Seq[V]) {
+	var trueVals, falseVals []V
+	for v := range seq {
+		if f(v) {
+			trueVals = append(trueVals, v)
+		} else {
+			falseVals = append(falseVals, v)
+		}
+	}
+	return FromSlice(trueVals), FromSlice(falseVals)
+}
+
+// Sorted returns a Seq that yields elements from seq in ascending order.
+// All elements are materialized for sorting.
+//
+// Example:
+//
+//	sorted := xiter.Sorted(xiter.FromSlice([]int{3, 1, 4, 1, 5}))
+//	fmt.Println(xiter.ToSlice(sorted))
+//	// output:
+//	// [1 1 3 4 5]
+func Sorted[V constraints.Ordered](seq Seq[V]) Seq[V] {
+	return SortBy(seq, func(v V) V { return v })
+}
+
+// SortBy returns a Seq that yields elements from seq sorted by the key
+// extracted by function f. All elements are materialized for sorting.
+//
+// Example:
+//
+//	type Person struct{ Name string; Age int }
+//	people := xiter.FromSlice([]Person{{"alice", 30}, {"bob", 25}})
+//	sorted := xiter.SortBy(people, func(p Person) int { return p.Age })
+//	fmt.Println(xiter.ToSlice(sorted))
+//	// output:
+//	// [{bob 25} {alice 30}]
+func SortBy[V any, K constraints.Ordered](seq Seq[V], f func(V) K) Seq[V] {
+	return func(yield func(V) bool) {
+		all := ToSlice(seq)
+		sort.Slice(all, func(i, j int) bool { return f(all[i]) < f(all[j]) })
+		for _, v := range all {
+			if !yield(v) {
+				return
 			}
 		}
 	}
