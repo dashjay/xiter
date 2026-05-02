@@ -419,6 +419,93 @@ func TestXIter(t *testing.T) {
 		testLimit(t, seq, 1)
 		assert.Equal(t, []int{1, 2, 3, 4}, xiter.ToSlice(seq))
 	})
+
+	t.Run("flat_map", func(t *testing.T) {
+		seq := xiter.FlatMap(func(v int) xiter.Seq[int] {
+			return xiter.FromSlice([]int{v, v * 10})
+		}, xiter.FromSlice([]int{1, 2, 3}))
+		assert.Equal(t, []int{1, 10, 2, 20, 3, 30}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+	})
+
+	t.Run("flatten", func(t *testing.T) {
+		seq := xiter.Flatten(xiter.FromSlice([]xiter.Seq[int]{
+			xiter.FromSlice([]int{1, 2}),
+			xiter.FromSlice([]int{3, 4, 5}),
+		}))
+		assert.Equal(t, []int{1, 2, 3, 4, 5}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+	})
+
+	t.Run("take_while", func(t *testing.T) {
+		seq := xiter.TakeWhile(func(v int) bool { return v < 5 }, xiter.FromSlice([]int{1, 3, 5, 7}))
+		assert.Equal(t, []int{1, 3}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+	})
+
+	t.Run("drop_while", func(t *testing.T) {
+		seq := xiter.DropWhile(func(v int) bool { return v < 5 }, xiter.FromSlice([]int{1, 3, 5, 7, 2}))
+		assert.Equal(t, []int{5, 7, 2}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+	})
+
+	t.Run("distinct_by", func(t *testing.T) {
+		seq := xiter.DistinctBy(func(v int) int { return v % 2 }, xiter.FromSlice([]int{1, 3, 2, 4, 5}))
+		assert.Equal(t, []int{1, 2}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+	})
+
+	t.Run("intersperse", func(t *testing.T) {
+		seq := xiter.Intersperse(0, xiter.FromSlice([]int{1, 2, 3}))
+		assert.Equal(t, []int{1, 0, 2, 0, 3}, xiter.ToSlice(seq))
+		testLimit(t, seq, 1)
+
+		single := xiter.Intersperse(0, xiter.FromSlice([]int{1}))
+		assert.Equal(t, []int{1}, xiter.ToSlice(single))
+
+		empty := xiter.Intersperse(0, xiter.FromSlice([]int{}))
+		assert.Nil(t, xiter.ToSlice(empty))
+	})
+
+	t.Run("split", func(t *testing.T) {
+		tru, fls := xiter.Split(func(v int) bool { return v%2 == 0 }, xiter.FromSlice([]int{1, 2, 3, 4, 5}))
+		assert.Equal(t, []int{2, 4}, xiter.ToSlice(tru))
+		assert.Equal(t, []int{1, 3, 5}, xiter.ToSlice(fls))
+
+		allTru, allFls := xiter.Split(func(v int) bool { return true }, xiter.FromSlice([]int{1, 2, 3}))
+		assert.Equal(t, []int{1, 2, 3}, xiter.ToSlice(allTru))
+		assert.Nil(t, xiter.ToSlice(allFls))
+
+		noneTru, noneFls := xiter.Split(func(v int) bool { return false }, xiter.FromSlice([]int{1, 2, 3}))
+		assert.Nil(t, xiter.ToSlice(noneTru))
+		assert.Equal(t, []int{1, 2, 3}, xiter.ToSlice(noneFls))
+
+		emptyTru, emptyFls := xiter.Split(func(v int) bool { return true }, xiter.FromSlice([]int{}))
+		assert.Nil(t, xiter.ToSlice(emptyTru))
+		assert.Nil(t, xiter.ToSlice(emptyFls))
+	})
+
+	t.Run("sorted", func(t *testing.T) {
+		sorted := xiter.Sorted(xiter.FromSlice([]int{3, 1, 4, 1, 5, 9}))
+		assert.Equal(t, []int{1, 1, 3, 4, 5, 9}, xiter.ToSlice(sorted))
+	})
+
+	t.Run("sort_by", func(t *testing.T) {
+		type person struct {
+			Name string
+			Age  int
+		}
+		people := xiter.FromSlice([]person{
+			{"charlie", 35},
+			{"alice", 30},
+			{"bob", 25},
+		})
+		sorted := xiter.SortBy(people, func(p person) int { return p.Age })
+		result := xiter.ToSlice(sorted)
+		assert.Equal(t, 25, result[0].Age)
+		assert.Equal(t, 30, result[1].Age)
+		assert.Equal(t, 35, result[2].Age)
+	})
 }
 
 func TestXIter61898(t *testing.T) {
